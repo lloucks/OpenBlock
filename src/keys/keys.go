@@ -5,6 +5,7 @@ import "crypto/rsa"
 import "io/ioutil"
 import "crypto/rand"
 import "encoding/pem"
+import "fmt"
 
 func GenerateKeys(){
 	Priv, err := rsa.GenerateKey(rand.Reader, 4096)

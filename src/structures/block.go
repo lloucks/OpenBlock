@@ -2,7 +2,7 @@
 //such as a method to create a block by passing in transactions, appending transactions etc...
 
 
-package block
+package structures
 //highly based off of https://github.com/bitcoin/bitcoin/tree/master/src/primitives
 
 import (
@@ -27,7 +27,3 @@ type BlockHeader struct{
     bits uint32 //the difficulty, how many 0s need to be in PoW hash
     Nonce uint32 //the number that solves this block
 }
-
-
-
-

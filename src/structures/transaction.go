@@ -1,6 +1,6 @@
 
 
-package block
+package structures
 //Given that we are not using currency, the transaction strucutre is flexible.
 
 //We can make it so that we have some designated address that all posts are sent to
@@ -18,4 +18,3 @@ type Transaction struct{
 
 
 }
-
