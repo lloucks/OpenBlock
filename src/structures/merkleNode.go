@@ -12,7 +12,8 @@ type MerkleNode struct {
 	LeftChild  *MerkleNode
 	RightChild *MerkleNode
 	HashedData []byte
-	leaf       bool
+	Leaf       bool
+	ChildType  int //to indicate if the node is a left-child(0) or right-child(1)
 }
 
 /*
@@ -25,7 +26,7 @@ func CreateMerkleNode(index int, left *MerkleNode, right *MerkleNode,
 	node.HashedData = hash
 	node.LeftChild = left
 	node.RightChild = right
-	node.leaf = leaf
+	node.Leaf = leaf
 	node.UID = generate_uuid()
 	return &node
 }

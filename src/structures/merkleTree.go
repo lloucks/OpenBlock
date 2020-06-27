@@ -23,7 +23,7 @@ type MerkleTreeList struct {
 	Creates a merkle tree from the transactions
 */
 func CreateMerkleTree(ID int, transactions []Transaction) *MerkleTree {
-	var nodes []MerkleNode
+	var nodes []*MerkleNode
 	var leafs []*MerkleNode
 	nodeCount := 0
 	if len(transactions) == 0 {
@@ -39,13 +39,13 @@ func CreateMerkleTree(ID int, transactions []Transaction) *MerkleTree {
 		nodes, nodeCount = createNodeLevel(prevNodes, nodeCount)
 	}
 	//nodes[0] is the last node created which is the root node
-	tree := &MerkleTree{ID: ID, Root: &nodes[0]}
+	tree := &MerkleTree{ID: ID, Root: nodes[0]}
 	tree.Leafs = leafs
 	return tree
 }
 
-func createLeafNodes(nodes []MerkleNode, leafs []*MerkleNode,
-	transactions []Transaction) ([]MerkleNode, []*MerkleNode, int) {
+func createLeafNodes(nodes []*MerkleNode, leafs []*MerkleNode,
+	transactions []Transaction) ([]*MerkleNode, []*MerkleNode, int) {
 	//create the leaf nodes in the tree
 	nodeCount := 0
 	for _, t := range transactions {
@@ -53,27 +53,29 @@ func createLeafNodes(nodes []MerkleNode, leafs []*MerkleNode,
 		hash := t.ID
 		node := CreateMerkleNode(nodeCount, nil, nil, hash, true)
 		nodeCount++
-		nodes = append(nodes, *node)
+		nodes = append(nodes, node)
 		leafs = append(leafs, node)
 	}
 
 	return nodes, leafs, nodeCount
 }
 
-func createNodeLevel(prevNodes []MerkleNode, nodeCount int) ([]MerkleNode, int) {
+func createNodeLevel(prevNodes []*MerkleNode, nodeCount int) ([]*MerkleNode, int) {
 	//create one level of the non-leaf nodes in the tree
-	var row []MerkleNode
+	var row []*MerkleNode
 	if len(prevNodes)%2 != 0 {
 		prevNodes = append(prevNodes, prevNodes[len(prevNodes)-1])
 	}
 	for i := 0; i < len(prevNodes); i += 2 {
-		newHash := generateNodeHash(&prevNodes[i], &prevNodes[i+1])
-		node := CreateMerkleNode(nodeCount, &prevNodes[i], &prevNodes[i+1],
+		newHash := generateNodeHash(prevNodes[i], prevNodes[i+1])
+		node := CreateMerkleNode(nodeCount, prevNodes[i], prevNodes[i+1],
 			newHash[:], false)
 		prevNodes[i].Parent = node
+		prevNodes[i].ChildType = 0
 		prevNodes[i+1].Parent = node
+		prevNodes[i+1].ChildType = 1
 		nodeCount++
-		row = append(row, *node)
+		row = append(row, node)
 	}
 	return row, nodeCount
 }
@@ -90,7 +92,7 @@ func generateNodeHash(left *MerkleNode, right *MerkleNode) [32]byte {
 //recurse the tree and verify it is up to date by re-calculating the hashes
 //
 func (n *MerkleNode) recalculateNodeHashes() ([]byte, error) {
-	if n.leaf {
+	if n.Leaf {
 		return n.HashedData, nil
 	}
 	rightBytes, err := n.RightChild.recalculateNodeHashes()
@@ -129,9 +131,14 @@ func (m *MerkleTree) VerifyTransaction(t *Transaction) (bool, error) {
 	for _, l := range m.Leafs {
 		if bytes.Compare(l.HashedData, t.ID) == 0 {
 			currentParent := l.Parent
+			current := l
 			for currentParent != nil {
 				rightBytes := currentParent.RightChild.HashedData
-				leftBytes := currentParent.LeftChild.HashedData
+				leftBytes := current.HashedData
+				if current.ChildType == 1 {
+					rightBytes = current.HashedData
+					leftBytes = currentParent.LeftChild.HashedData
+				}
 				combinedHash := append(leftBytes, rightBytes...)
 				hash := sha256.Sum256(combinedHash) //hash the combined hashes
 				HashedData := hash[:]
@@ -139,6 +146,7 @@ func (m *MerkleTree) VerifyTransaction(t *Transaction) (bool, error) {
 					return false, nil
 				}
 				currentParent = currentParent.Parent
+				current = current.Parent
 			}
 			return true, nil
 		}

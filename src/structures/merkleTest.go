@@ -44,4 +44,21 @@ func MerkleTreeTest() {
 	}
 	fmt.Printf("Trusted transaction: %t\n", result2)
 
+	/*
+		simulate one node and one transaction being hijacked and faulty,
+		the tree will be able to tell it is faulty when it combines the signatures
+		and checks with old combinations
+	*/
+	attackNumber := (len(mTree1.Leafs) / 2)
+	oldNode := mTree1.Leafs[attackNumber]
+	faultyTransaction := CreateTransaction("Faulty Transaction", 4)
+	faultyNode := CreateMerkleNode(oldNode.Index, nil, nil,
+		faultyTransaction.ID, true)
+	faultyNode.Parent = oldNode.Parent
+	mTree1.Leafs[attackNumber] = faultyNode
+	result3, err := mTree1.VerifyTransaction(faultyTransaction)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("Trusted transaction: %t\n", result3)
 }
