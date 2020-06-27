@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"log"
-	"math"
 )
 
 type MerkleTree struct {
@@ -33,9 +32,9 @@ func CreateMerkleTree(ID int, transactions []Transaction) *MerkleTree {
 	}
 	nodes, leafs, nodeCount = createLeafNodes(nodes, leafs, transactions)
 	//all the levels above the leaf nodes can be created from the leaf nodes
-	amountOfLevels := int(math.Log2(float64(len(transactions))))
+	//amountOfLevels := int(math.Log2(float64(len(transactions))))
 	/*each iteration of the for loop creates a row in the merkle tree */
-	for i := 0; i <= amountOfLevels; i++ {
+	for len(nodes) > 1 {
 		prevNodes := nodes
 		nodes, nodeCount = createNodeLevel(prevNodes, nodeCount)
 	}
@@ -185,7 +184,7 @@ func (m *MerkleTree) CollectNodes(mtl *MerkleTreeList, n *MerkleNode) {
 
 }
 
-func (m *MerkleTree) CheckMerkleTree(n *MerkleNode) (bool, error) {
+func (m *MerkleTree) CheckMerkleTree(n *MerkleNode) MerkleTreeList {
 	var mList []*MerkleNode
 	var UIDList []string
 	height := m.CheckHeight(n, 0)
@@ -196,5 +195,5 @@ func (m *MerkleTree) CheckMerkleTree(n *MerkleNode) (bool, error) {
 		UIDs:   UIDList,
 	}
 	m.CollectNodes(&mStruct, m.Root)
-	return true, nil
+	return mStruct
 }

@@ -26,12 +26,14 @@ func CreateMerkleNode(index int, left *MerkleNode, right *MerkleNode,
 	node.LeftChild = left
 	node.RightChild = right
 	node.leaf = leaf
-	node.UID = pseudo_uuid()
+	node.UID = generate_uuid()
 	return &node
 }
 
-// Note - NOT RFC4122 compliant
-func pseudo_uuid() (uuid string) {
+/*
+	Generates a Unique Identifier for the Merkle Node
+*/
+func generate_uuid() (uuid string) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {
