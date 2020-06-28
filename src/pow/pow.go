@@ -1,5 +1,5 @@
 //this pakage will define blocks and transactions, plus any methods we need to work with them
-//such as a method to create a block by passing in transactions, appending transactions etc...
+
 
 
 package pow
@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"structures"
+        "time"
 )
 
 //These data types are not representative of the actual product
@@ -17,53 +18,72 @@ import (
 
 //we will start the nonce at zero in our client
 
+func to_hex_string(item interface{}) string{
 
-func solve_block(block structures.Block, difficulty int) [32]byte{
-    //convert to byte array
+    bytearr := []byte(fmt.Sprintf("%v", item))
+    hex := fmt.Sprintf("%x", bytearr)
+
+    return hex
+}
 
 
-    var cmpstring string
+func complete_block(block structures.Block) structures.Block{
+    //set timestamp
 
-    for x := 0; x<difficulty; x++{
-        cmpstring = cmpstring + "0"
-    }
-    fmt.Println(cmpstring)
+    block.Header.Timestamp = time.Now()
 
-    var winner [32]byte
-    //hash it
+    //pull off header for the PoW algorithim
+
+    header := &block.Header
+
+
     for{
-
-        bytes := []byte(fmt.Sprintf("%v", block))
-
-        hash := sha256.Sum256(bytes)
-
-        hashstr := fmt.Sprintf("%x", hash)
-
-        //good number of zeroes?
-        fmt.Println(hashstr)
-
-        if hashstr[:difficulty] == cmpstring{
-            fmt.Println("found a valid hash!")
-            winner = hash
-            break
+        if verify_work(*header){
+            return block
         }
-
-
         //not enough zeroes? increment nonce and try again
-        block.Header.Nonce ++
-
-        fmt.Println("Setting nonce to ", block.Header.Nonce)
+        header.Nonce++
 
     }
-
-    return winner
 
 }
 
 
-func verify_block(block structures.Block){
+func verify_work(header structures.BlockHeader) bool{
 
+    prevhex := to_hex_string(header.Prev_block_hash)
+    merklehex := to_hex_string(header.Merkle_root_hash)
+    timehex := to_hex_string(header.Timestamp)
+    bitshex := to_hex_string(header.Difficulty)
+    noncehex := to_hex_string(header.Nonce)
 
+    headerhex := prevhex + merklehex + timehex + bitshex + noncehex
 
+    bytes := []byte(fmt.Sprintf("%v", headerhex)) //
+
+    //make the hash
+
+    hash := sha256.Sum256(bytes)
+
+    //convert back to hex
+
+    hashstr := fmt.Sprintf("%x", hash)
+
+    //good number of zeroes?
+
+//    fmt.Println(hashstr)
+
+    difficulty := int(header.Difficulty)
+
+    var cmpstring string //create the string to verify we have correct nonce
+    for i := 0; i<int(difficulty); i++{
+        cmpstring = cmpstring + "0"
+    }
+
+    if hashstr[:difficulty] == cmpstring{
+        return true
+    } else{
+        return false
+    }
 
 }

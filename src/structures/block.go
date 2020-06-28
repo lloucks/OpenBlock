@@ -22,7 +22,7 @@ type Block struct{
 type BlockHeader struct{
     Prev_block_hash int //should be uint256
     Merkle_root_hash int //should be uint256
-    timestamp time.Time //created by the node making this block
-    bits uint32 //the difficulty, how many 0s need to be in PoW hash
+    Timestamp time.Time //created by the node making this block
+    Difficulty uint32 //the difficulty, how many 0s need to be in PoW hash
     Nonce uint32 //the number that solves this block
 }
