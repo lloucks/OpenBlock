@@ -10,7 +10,6 @@ import (
 )
 
 //These data types are not representative of the actual product
-//I need to implement 256 bit ints to store hashes as well (or import a library)
 
 type Block struct{
     Magic_num uint32 //so we know it's part of our protocol
