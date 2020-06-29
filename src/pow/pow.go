@@ -1,9 +1,4 @@
-//this pakage will define blocks and transactions, plus any methods we need to work with them
-
-
-
 package pow
-//highly based off of https://github.com/bitcoin/bitcoin/tree/master/src/primitives
 
 import (
 	"crypto/sha256"
@@ -11,8 +6,6 @@ import (
 	"structures"
         "time"
 )
-
-//These data types are not representative of the actual product
 
 //difficulty will be the number of zeroes to match
 
@@ -27,7 +20,7 @@ func to_hex_string(item interface{}) string{
 }
 
 
-func complete_block(block structures.Block) structures.Block{
+func Complete_block(block structures.Block) structures.Block{
     //set timestamp
 
     block.Header.Timestamp = time.Now()
@@ -38,7 +31,7 @@ func complete_block(block structures.Block) structures.Block{
 
 
     for{
-        if verify_work(*header){
+        if Verify_work(*header){
             return block
         }
         //not enough zeroes? increment nonce and try again
@@ -49,7 +42,7 @@ func complete_block(block structures.Block) structures.Block{
 }
 
 
-func verify_work(header structures.BlockHeader) bool{
+func Verify_work(header structures.BlockHeader) bool{
 
     prevhex := to_hex_string(header.Prev_block_hash)
     merklehex := to_hex_string(header.Merkle_root_hash)
@@ -69,9 +62,6 @@ func verify_work(header structures.BlockHeader) bool{
 
     hashstr := fmt.Sprintf("%x", hash)
 
-    //good number of zeroes?
-
-//    fmt.Println(hashstr)
 
     difficulty := int(header.Difficulty)
 

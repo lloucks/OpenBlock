@@ -19,11 +19,11 @@ func Test_low_difficulty(t *testing.T){
 
     empty_block.Header.Difficulty = 5
 
-    block := complete_block(empty_block)
+    block := Complete_block(empty_block)
 
     fmt.Println("Nonce is ", block.Header.Nonce)
 
-    if verify_work(block.Header){
+    if Verify_work(block.Header){
         fmt.Printf("Block is valid\n")
     }else{
         log.Fatalf("Block is not valid")
