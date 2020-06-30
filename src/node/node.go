@@ -10,6 +10,7 @@ import (
     "pow"
     "time"
     "fmt"
+    "strconv"
 )
 
 
@@ -19,11 +20,11 @@ type Node struct{
     Chain []structures.Block //probably should be the merkle tree
     Privkey []byte //I'm not sure on what this type should be
     Pubkey []byte //same with this one
-
+    Index int //What is this for????
     Cur_block structures.Block //current block to add transactions to
 
     Block_time time.Duration //How long we aim for between blocks (seconds)
-    Difficulty int //how many zeros we want (in bits) at front of hash
+    Cur_difficulty int //how many zeros we want (in bits) at front of hash
 }
 
 
@@ -33,7 +34,8 @@ func Make_node() Node{
     node := Node{}
 
     node.Block_time = 20*time.Second
-
+    node.Cur_difficulty = 3
+    node.Index = 0
     return node
 }
 
@@ -49,16 +51,52 @@ func (n *Node) Recieve_block(block structures.Block){
     //other validity conditions here
 
     //if it passes them all, then we accept it
-
+    block.Index = block.Index+1
     n.Chain = append(n.Chain, block)
 }
 
 //take the current block and try to solve it (done accepting transactions for now)
+func (n *Node) GetLastBlock() structures.Block{
+    return n.Chain[len(n.Chain) -1]
+}
+
 func (n *Node) Generate_block(){
 //TODO
 
 }
 
+
+
+func (n *Node) CreateGenesisBlock(){
+    block := structures.Block{}
+
+    block.Index = 0
+    block.Header.Prev_block_hash = 0000000000000000000000000000000000000000000000000000000000000000
+    block.Header.Difficulty = uint32(n.Cur_difficulty)
+
+    block = pow.Complete_block(block)
+
+    n.Recieve_block(block)
+}
+
+
+//this function makes no sense. You wait for transactions to fill the block,
+//THEN you hash the header and increment nonce until complete.
+func (n *Node) MakeBlock() structures.Block{
+    block := structures.Block{}
+    block.Index = n.Index
+    var err error
+    block.Header.Prev_block_hash, err = strconv.Atoi(pow.GenerateHash(n.Chain[n.Index-1].Header))
+    if err != nil{
+        fmt.Println("Critical error converting block hash to int")
+    }
+
+    //difficulty should be the same as last block unless we adjust it
+
+    block.Header.Difficulty = n.GetLastBlock().Header.Difficulty
+
+    return block
+}
 
 //Call every X blocks to ensure time between blocks is consistent(ish)
 //20 Seconds between blocks for now
@@ -101,11 +139,11 @@ func (n *Node) Adjust_difficulty(){
     fmt.Printf("Goal is %v seconds\n", n.Block_time)
 
     if average - n.Block_time < -time.Duration(time.Second){
-        n.Difficulty ++
+        n.Cur_difficulty ++
     } else if average - n.Block_time > time.Duration(time.Second){
-        n.Difficulty --
+        n.Cur_difficulty --
     }
 
-    fmt.Printf("Changed difficulty to %v\n\n", n.Difficulty)
+    fmt.Printf("Changed difficulty to %v\n\n", n.Cur_difficulty)
 
 }

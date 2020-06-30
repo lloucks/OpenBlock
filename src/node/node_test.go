@@ -22,7 +22,7 @@ func Test_difficulty_adjustment_positive(t *testing.T){
 
     node := Make_node()
     node.Block_time = 20*time.Second
-    node.Difficulty = 5
+    node.Cur_difficulty = 5
 
     cur_time := time.Now()
 
@@ -35,8 +35,8 @@ func Test_difficulty_adjustment_positive(t *testing.T){
 
     node.Adjust_difficulty()
 
-    if node.Difficulty != 6{
-        log.Fatalf("Difficulty should have been adjusted to 6")
+    if node.Cur_difficulty != 6{
+        log.Fatalf("Cur_difficulty should have been adjusted to 6")
     }
 
 }
@@ -47,7 +47,7 @@ func Test_difficulty_adjustment_negative(t *testing.T){
 
     node := Make_node()
     node.Block_time = 20*time.Second
-    node.Difficulty = 5
+    node.Cur_difficulty = 5
 
     cur_time := time.Now()
 
@@ -60,8 +60,8 @@ func Test_difficulty_adjustment_negative(t *testing.T){
 
     node.Adjust_difficulty()
 
-    if node.Difficulty != 4{
-        log.Fatalf("Difficulty should have been adjusted to 4")
+    if node.Cur_difficulty != 4{
+        log.Fatalf("Cur_difficulty should have been adjusted to 4")
     }
 
 

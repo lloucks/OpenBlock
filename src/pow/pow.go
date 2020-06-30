@@ -41,8 +41,7 @@ func Complete_block(block structures.Block) structures.Block{
 
 }
 
-
-func Verify_work(header structures.BlockHeader) bool{
+func GenerateHash(header structures.BlockHeader) string{
 
     prevhex := to_hex_string(header.Prev_block_hash)
     merklehex := to_hex_string(header.Merkle_root_hash)
@@ -61,6 +60,16 @@ func Verify_work(header structures.BlockHeader) bool{
     //convert back to hex
 
     hashstr := fmt.Sprintf("%x", hash)
+
+    return hashstr
+
+}
+
+
+
+func Verify_work(header structures.BlockHeader) bool{
+
+    hashstr := GenerateHash(header)
 
 
     difficulty := int(header.Difficulty)
