@@ -53,6 +53,7 @@ func (n *Node) Recieve_block(block structures.Block){
     n.Chain = append(n.Chain, block)
 }
 
+//take the current block and try to solve it (done accepting transactions for now)
 func (n *Node) Generate_block(){
 //TODO
 
