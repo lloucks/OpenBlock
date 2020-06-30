@@ -19,7 +19,7 @@ type Node struct{
     Chain []structures.Block //probably should be the merkle tree
     Privkey []byte //I'm not sure on what this type should be
     Pubkey []byte //same with this one
-
+    Index int
     Cur_block structures.Block //current block to add transactions to
 
     Block_time time.Duration //How long we aim for between blocks (seconds)
@@ -33,7 +33,8 @@ func Make_node() Node{
     node := Node{}
 
     node.Block_time = 20*time.Second
-
+    node.Difficulty = 3
+    node.Index = 0
     return node
 }
 
@@ -49,8 +50,12 @@ func (n *Node) Recieve_block(block structures.Block){
     //other validity conditions here
 
     //if it passes them all, then we accept it
-
+    block.Index = block.Index+1
     n.Chain = append(n.Chain, block)
+}
+
+func (n *Node) GetLastBlock() structures.Block{
+    return n.Chain[len(n.Chain) -1]
 }
 
 func (n *Node) Generate_block(){
@@ -58,6 +63,32 @@ func (n *Node) Generate_block(){
 
 }
 
+
+
+func (n *Node) CreateGenesisBlock(){
+    block := structures.CreateBlock()
+    
+    block.Index = 0
+    block.Header.Prev_block_hash = "0000000000000000000000000000000000000000000000000000000000000000"
+    block.Data = "Genesis Block"
+    block.Header.Difficulty = b.Difficulty
+    
+    block.Mine()
+    
+    n.Recieve_block(block)
+}
+
+
+func (n *Node) AddBlock(data string){
+    block := structures.CreateBlock()
+    block.Index = n.Index
+    block.Header.Prev_block_hash = n.GetLastBlock().Header.Hash
+    block.Data = data
+    block.Header.Difficulty = n.Difficulty
+    block.Mine()
+    
+    n.Recieve_block(block)   
+}
 
 //Call every X blocks to ensure time between blocks is consistent(ish)
 //20 Seconds between blocks for now
