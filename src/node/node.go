@@ -69,7 +69,7 @@ func (n *Node) CreateGenesisBlock(){
     block := structures.CreateBlock()
     
     block.Index = 0
-    block.Header.Prev_block_hash = "0000000000000000000000000000000000000000000000000000000000000000"
+    block.Header.Prev_block_hash = 0000000000000000000000000000000000000000000000000000000000000000
     block.Data = "Genesis Block"
     block.Header.Difficulty = b.Difficulty
     
