@@ -2,12 +2,19 @@ package main
 
 import (
 	"fmt"
-	"keys"
-	"structures"
+	//"keys"
+	//"structures"
+        "node"
 )
 
 func main() {
-	fmt.Println("Generating RSA key pair and committing to local storage.")
-	keys.GenerateKeys()
-	structures.MerkleTreeTest()
+    fmt.Println("Launching Node")
+
+    node := node.Make_node()
+
+    node.Blocksize = 2
+    node.Killed = false
+
+    node.Run()
+
 }

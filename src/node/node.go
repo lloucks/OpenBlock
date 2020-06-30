@@ -10,7 +10,11 @@ import (
     "pow"
     "time"
     "fmt"
-    "strconv"
+    //"strconv"
+    "brpc"
+    "log"
+    "encoding/hex"
+    "encoding/binary"
 )
 
 
@@ -23,8 +27,13 @@ type Node struct{
     Index int //What is this for????
     Cur_block structures.Block //current block to add transactions to
 
+    Blocksize int //How big our blocks will be (in transaction count, for simplicity)
+
     Block_time time.Duration //How long we aim for between blocks (seconds)
     Cur_difficulty int //how many zeros we want (in bits) at front of hash
+
+
+    Killed bool //So the node knows to kill itself
 }
 
 
@@ -36,23 +45,30 @@ func Make_node() Node{
     node.Block_time = 20*time.Second
     node.Cur_difficulty = 3
     node.Index = 0
+
+    fmt.Println("Made a client node")
     return node
 }
 
 //we can have the rpc call this
 func (n *Node) Recieve_block(block structures.Block){
 
+    fmt.Println("Checking block valididty")
     work_valid := pow.Verify_work(block.Header)
 
     if !work_valid{//ignore it
+        fmt.Println("Block is invalid!")
         return
     }
 
     //other validity conditions here
 
+    fmt.Println("Block is valid")
     //if it passes them all, then we accept it
     block.Index = block.Index+1
     n.Chain = append(n.Chain, block)
+
+    fmt.Println("Chain is ", n.Chain)
 }
 
 //take the current block and try to solve it (done accepting transactions for now)
@@ -80,16 +96,23 @@ func (n *Node) CreateGenesisBlock(){
 }
 
 
-//this function makes no sense. You wait for transactions to fill the block,
+//You wait for transactions to fill the block,
 //THEN you hash the header and increment nonce until complete.
 func (n *Node) MakeBlock() structures.Block{
     block := structures.Block{}
     block.Index = n.Index
-    var err error
-    block.Header.Prev_block_hash, err = strconv.Atoi(pow.GenerateHash(n.Chain[n.Index-1].Header))
+
+    fmt.Println("hashing previous block")
+
+    fmt.Println("Length of chain is ", len(n.Chain))
+    hexhash, err := hex.DecodeString(pow.GenerateHash(n.Chain[len(n.Chain)-1].Header))
+
+    block.Header.Prev_block_hash = int(binary.BigEndian.Uint32(hexhash))
     if err != nil{
-        fmt.Println("Critical error converting block hash to int")
+        log.Fatalf("Critical error converting block hash to int: %v\n", err)
+
     }
+    fmt.Println("hashed")
 
     //difficulty should be the same as last block unless we adjust it
 
@@ -145,5 +168,85 @@ func (n *Node) Adjust_difficulty(){
     }
 
     fmt.Printf("Changed difficulty to %v\n\n", n.Cur_difficulty)
+
+}
+
+
+//RPC that other nodes call to send transactions to this node.
+
+//The header must be changed to proper RPC args/reply strandards when we get there
+func (n *Node) recieve_transaction(args *brpc.Args, reply *brpc.Reply){
+    //Pull the transaction out of arguments
+
+    t := args.Transaction
+
+    //Validate transaction
+
+
+    //if valid, append it.
+    n.Cur_block.Transactions = append(n.Cur_block.Transactions, t)
+
+
+
+
+
+}
+
+
+//As of right now, we will just have a node building it's own chain
+
+//We will need to build on this when it comes to reciving from others.
+
+func (n *Node) Run(){
+
+    //asuming we are starting a brand new chain everytime for now.
+    n.CreateGenesisBlock()
+    n.Cur_block = n.MakeBlock()
+
+    go n.local_transaction_loop()
+
+    for !n.Killed{
+    //if our block is FULL (to be determined when) then we try to complete it and start
+    //a new block
+    if n.is_cur_block_full(){
+     n.Cur_block = pow.Complete_block(n.Cur_block)
+     n.Chain = append(n.Chain, n.Cur_block)
+     n.Cur_block = n.MakeBlock()
+     fmt.Printf("Added a block to the chain\n")
+    }
+
+    time.Sleep(time.Millisecond * 50)
+    //else we wait for user input to send transactions
+    }
+
+}
+
+func (n *Node) is_cur_block_full() bool{
+    if len(n.Cur_block.Transactions) >= n.Blocksize{
+        return true
+    } else {
+        return false
+    }
+}
+
+//A goroutine that will wait for user input, make a transaction and add it to the current block
+func (n *Node) local_transaction_loop(){
+
+    var input string
+
+    for{
+    fmt.Println("Enter text: ")
+    fmt.Scanln(&input)
+
+    t := structures.Transaction{}
+    t.Text = input
+
+    n.Cur_block.Transactions = append(n.Cur_block.Transactions, t)
+
+    fmt.Printf("Added a transaction to block %v\n", len(n.Chain) + 1)
+    }
+
+
+
 
 }
