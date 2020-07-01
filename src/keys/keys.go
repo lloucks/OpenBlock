@@ -5,8 +5,8 @@ import "crypto/rsa"
 import "io/ioutil"
 import "crypto/rand"
 import "encoding/pem"
-import "fmt"
 import "log"
+import "errors"
 
 func GenerateKeys(){
 	Priv, err := rsa.GenerateKey(rand.Reader, 4096)
@@ -33,12 +33,17 @@ func GenerateKeys(){
 }
 
 func GetKeys() (*rsa.PrivateKey, *rsa.PublicKey) {
+
+	err := keysPresent()
+	if err != nil{
+		GenerateKeys()
+	}
+
 	privContent, err := ioutil.ReadFile("key.priv")
 	pubContent, err2 := ioutil.ReadFile("key.pub")
 
 	if err != nil || err2 != nil {
-		fmt.Println("Generating keys")
-		GenerateKeys()
+		return nil, nil
 	}
 
 	privBlock, _ := pem.Decode(privContent)
@@ -52,4 +57,16 @@ func GetKeys() (*rsa.PrivateKey, *rsa.PublicKey) {
 	}
 
 	return privKey, pubKey
+}
+
+func keysPresent() error {
+	_, err := ioutil.ReadFile("key.priv")
+	_, err2 := ioutil.ReadFile("key.pub")
+
+	if err != nil || err2 != nil {
+		return errors.New("No keys found")
+	}
+
+	return nil
+
 }
