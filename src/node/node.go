@@ -219,11 +219,16 @@ func (n *Node) local_transaction_loop() {
 	var input string
 
 	for {
+		fmt.Println("Enter author Number: ")
+		var authorID int
+		_, err := fmt.Scanf("%d", &authorID)
+		if err != nil {
+			log.Fatal("not valid author ID")
+		}
 		fmt.Println("Enter text: ")
 		fmt.Scanln(&input)
 
-		t := structures.Transaction{}
-		t.Text = input
+		t := structures.CreateTransaction(input, authorID)
 
 		n.Cur_block.MTree.AddTransaction(t)
 

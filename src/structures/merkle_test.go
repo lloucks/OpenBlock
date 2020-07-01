@@ -42,11 +42,18 @@ func Test_merkle_tree(t *testing.T) {
 		fmt.Println(err)
 	}
 	fmt.Printf("Trusted transaction: %t\n", result)
-	result2, err := mTree1.VerifyTransaction(t5)
+	/*now add the transaction to the tree and check again*/
+	mTree1 = mTree1.AddTransaction(faultyTransation)
+	result2, err := mTree1.VerifyTransaction(faultyTransation)
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Printf("Trusted transaction: %t\n", result2)
+	result3, err := mTree1.VerifyTransaction(t5)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("Trusted transaction: %t\n", result3)
 
 	/*
 		simulate one node and one transaction being hijacked and faulty,
@@ -60,9 +67,9 @@ func Test_merkle_tree(t *testing.T) {
 		faultyTransaction.ID, true)
 	faultyNode.Parent = oldNode.Parent
 	mTree1.Leafs[attackNumber] = faultyNode
-	result3, err := mTree1.VerifyTransaction(faultyTransaction)
+	result4, err := mTree1.VerifyTransaction(faultyTransaction)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Printf("Trusted transaction: %t\n", result3)
+	fmt.Printf("Trusted transaction: %t\n", result4)
 }
