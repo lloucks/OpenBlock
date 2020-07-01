@@ -44,6 +44,29 @@ func CreateMerkleTree(ID int, transactions []Transaction) *MerkleTree {
 	return tree
 }
 
+/*
+	Adds a new transaction to the merkle tree
+	Returns the new merkle tree
+*/
+func (m *MerkleTree) AddTransaction(t Transaction) *MerkleTree {
+	var nodes []*MerkleNode
+	var leafs []*MerkleNode
+	nodeCount := len(m.Leafs)
+	hash := t.ID
+	node := CreateMerkleNode(nodeCount, nil, nil, hash, true)
+	nodeCount++
+	nodes = append(nodes, node)
+	leafs = append(leafs, node)
+	for len(nodes) > 1 {
+		prevNodes := nodes
+		nodes, nodeCount = createNodeLevel(prevNodes, nodeCount)
+	}
+	//nodes[0] is the last node created which is the root node
+	tree := &MerkleTree{ID: m.ID, Root: nodes[0]}
+	tree.Leafs = leafs
+	return tree
+}
+
 func createLeafNodes(nodes []*MerkleNode, leafs []*MerkleNode,
 	transactions []Transaction) ([]*MerkleNode, []*MerkleNode, int) {
 	//create the leaf nodes in the tree

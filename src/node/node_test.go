@@ -1,8 +1,4 @@
-
-
 package node
-
-
 
 import (
 	"fmt"
@@ -12,66 +8,59 @@ import (
 	"time"
 )
 
+func Test_difficulty_adjustment_positive(t *testing.T) {
+	fmt.Printf("Starting difficulty adjustment test A\n")
 
+	//generate 100 blocks 10 seconds apart and add them to the chain
+	//We are not going to verify they are valid in this test
 
-func Test_difficulty_adjustment_positive(t *testing.T){
-    fmt.Printf("Starting difficulty adjustment test A\n")
+	node := Make_node()
+	node.Block_time = 20 * time.Second
+	node.Cur_difficulty = 5
 
-    //generate 100 blocks 10 seconds apart and add them to the chain
-    //We are not going to verify they are valid in this test
+	cur_time := time.Now()
 
-    node := Make_node()
-    node.Block_time = 20*time.Second
-    node.Cur_difficulty = 5
+	for i := 0; i < 100; i++ {
+		block := structures.Block{}
+		block.Header.Difficulty = 4
+		block.Header.Timestamp = cur_time.Add(time.Second * time.Duration(10*i))
+		node.Chain = append(node.Chain, block)
+	}
 
-    cur_time := time.Now()
+	node.Adjust_difficulty()
 
-    for i:=0; i<100; i++{
-        block := structures.Block{}
-        block.Header.Difficulty = 4
-        block.Header.Timestamp = cur_time.Add(time.Second * time.Duration(10 * i))
-        node.Chain = append(node.Chain, block)
-    }
-
-    node.Adjust_difficulty()
-
-    if node.Cur_difficulty != 6{
-        log.Fatalf("Cur_difficulty should have been adjusted to 6")
-    }
+	if node.Cur_difficulty != 6 {
+		log.Fatalf("Cur_difficulty should have been adjusted to 6")
+	}
 
 }
 
+func Test_difficulty_adjustment_negative(t *testing.T) {
+	fmt.Printf("Starting difficulty adjustment test B\n")
 
-func Test_difficulty_adjustment_negative(t *testing.T){
-    fmt.Printf("Starting difficulty adjustment test B\n")
+	node := Make_node()
+	node.Block_time = 20 * time.Second
+	node.Cur_difficulty = 5
 
-    node := Make_node()
-    node.Block_time = 20*time.Second
-    node.Cur_difficulty = 5
+	cur_time := time.Now()
 
-    cur_time := time.Now()
+	for i := 0; i < 100; i++ {
+		block := structures.Block{}
+		block.Header.Difficulty = 4
+		block.Header.Timestamp = cur_time.Add(time.Second * time.Duration(30*i))
+		node.Chain = append(node.Chain, block)
+	}
 
-    for i:=0; i<100; i++{
-        block := structures.Block{}
-        block.Header.Difficulty = 4
-        block.Header.Timestamp = cur_time.Add(time.Second * time.Duration(30 * i))
-        node.Chain = append(node.Chain, block)
-    }
+	node.Adjust_difficulty()
 
-    node.Adjust_difficulty()
-
-    if node.Cur_difficulty != 4{
-        log.Fatalf("Cur_difficulty should have been adjusted to 4")
-    }
-
-
+	if node.Cur_difficulty != 4 {
+		log.Fatalf("Cur_difficulty should have been adjusted to 4")
+	}
 
 }
-
 
 //this test will do an actual run and see how long it takes to achieve the proper block time
-func Test_difficulty_adjustment_long(t *testing.T){
-    fmt.Printf("Starting block generation difficulty adjustement test\n")
-
+func Test_difficulty_adjustment_long(t *testing.T) {
+	fmt.Printf("Starting block generation difficulty adjustement test\n")
 
 }

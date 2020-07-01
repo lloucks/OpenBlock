@@ -1,8 +1,12 @@
 package structures
 
-import "fmt"
+import (
+	"fmt"
+	"testing"
+)
 
-func MerkleTreeTest() {
+func Test_merkle_tree(t *testing.T) {
+	fmt.Printf("Starting merkle tree test\n")
 	var transactions []Transaction
 
 	t1 := CreateTransaction("hi hi hi", 1)
