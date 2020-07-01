@@ -6,12 +6,13 @@ import "io/ioutil"
 import "crypto/rand"
 import "encoding/pem"
 import "fmt"
+import "log"
 
 func GenerateKeys(){
 	Priv, err := rsa.GenerateKey(rand.Reader, 4096)
 
 	if err != nil {
-	   fmt.Println("Failed to generate key pair.")
+	   log.Fatal("Failed to generate key pair.")
 	}
 
 	// MarshalPKCS1__Key converts a key to PKCS#1, ASN.1 DER form.
@@ -29,4 +30,26 @@ func GenerateKeys(){
 	})
 
 	ioutil.WriteFile("key.priv", privBytes, 0644)
+}
+
+func GetKeys() (*rsa.PrivateKey, *rsa.PublicKey) {
+	privContent, err := ioutil.ReadFile("key.priv")
+	pubContent, err2 := ioutil.ReadFile("key.pub")
+
+	if err != nil || err2 != nil {
+		fmt.Println("Generating keys")
+		GenerateKeys()
+	}
+
+	privBlock, _ := pem.Decode(privContent)
+	pubBlock, _ := pem.Decode(pubContent)
+	
+	privKey, err := x509.ParsePKCS1PrivateKey(privBlock.Bytes)
+	pubKey, err2 := x509.ParsePKCS1PublicKey(pubBlock.Bytes)
+
+	if err != nil || err2 != nil {
+		log.Fatal("Could not read keys\n", err, "\n", err2)
+	}
+
+	return privKey, pubKey
 }
