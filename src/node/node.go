@@ -173,7 +173,7 @@ func (n *Node) recieve_transaction(args *brpc.Args, reply *brpc.Reply) {
 	//Validate transaction
 
 	//if valid, append it.
-	n.Cur_block.MTree.AddTransaction(t)
+	n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
 
 }
 
@@ -230,7 +230,7 @@ func (n *Node) local_transaction_loop() {
 
 		t := structures.CreateTransaction(input, authorID)
 
-		n.Cur_block.MTree.AddTransaction(t)
+		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
 
 		fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
 	}

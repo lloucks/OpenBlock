@@ -19,7 +19,7 @@ type Block struct {
 	Block_size uint32 //number of bytes in this block
 	Header     BlockHeader
 	T_count    uint32 //number of transactions in this block
-	MTree      MerkleTree
+	MTree      *MerkleTree
 }
 
 type BlockHeader struct {
