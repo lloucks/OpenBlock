@@ -206,7 +206,11 @@ func (n *Node) Run() {
 }
 
 func (n *Node) is_cur_block_full() bool {
-	if len(n.Cur_block.MTree.Leafs) >= n.Blocksize {
+	num_transactions := 0
+	if (n.Cur_block.MTree) != nil {
+		num_transactions = len(n.Cur_block.MTree.Leafs)
+	}
+	if num_transactions >= n.Blocksize {
 		return true
 	} else {
 		return false
@@ -230,7 +234,13 @@ func (n *Node) local_transaction_loop() {
 
 		t := structures.CreateTransaction(input, authorID)
 
-		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
+		if n.Cur_block.MTree == nil {
+			var transactions []structures.Transaction
+			transactions = append(transactions, *t)
+			n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
+		} else {
+			n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
+		}
 
 		fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
 	}
