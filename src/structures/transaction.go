@@ -1,14 +1,14 @@
 package structures
 
 import (
-	"encoding/gob"
-	"log"
-	"keys"
+	"bytes"
 	"crypto"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/rand"
-	"bytes"
+	"encoding/gob"
+	"keys"
+	"log"
 )
 
 //Given that we are not using currency, the transaction strucutre is flexible.
@@ -23,7 +23,7 @@ type Transaction struct {
 	//int is just a placeholder for now
 
 	privateKey rsa.PrivateKey
-	publicKey rsa.PublicKey
+	publicKey  rsa.PublicKey
 	//need to send it somewhere
 	//need to sign it so it can be veried
 }
@@ -44,7 +44,7 @@ func signTransaction(transaction *Transaction) []byte {
 func readTransaction(transaction *Transaction, signature []byte) error {
 	hashed := sha256.Sum256(transaction.Serialize())
 	err := rsa.VerifyPKCS1v15(&transaction.publicKey, crypto.SHA256, hashed[:], signature)
-	
+
 	return err
 }
 
