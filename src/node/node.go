@@ -129,7 +129,13 @@ func (n *Node) Adjust_difficulty(){
     //blocks per min * 2 gives a difficulty check roughly every 2 mins
     //when the duration between blocks is 20 seconds
 
-    adjust_block_count := int((time.Second*60)/n.Block_time) * 2
+    //flat 5 seems to work better than doing it dynamically
+    adjust_block_count := 5 //int((time.Second*60)/n.Block_time) * 2
+
+    //make sure chain is longer than we need to look at otherwise don't adjust
+    if len(n.Chain)  < adjust_block_count+1{
+        return
+    }
 
     // -1 is so we have one extra time to look at
     blocks := n.Chain[len(n.Chain) - adjust_block_count - 1:]
@@ -232,9 +238,9 @@ func (n *Node) is_cur_block_full() bool{
 //A goroutine that will wait for user input, make a transaction and add it to the current block
 func (n *Node) local_transaction_loop(){
 
-    var input string
 
     for{
+    var input string
     fmt.Println("Enter text: ")
     fmt.Scanln(&input)
 
