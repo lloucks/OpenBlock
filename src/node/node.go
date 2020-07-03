@@ -18,6 +18,7 @@ import (
 )
 
 type Node struct {
+	MTree     *structures.MerkleTree
 	Chain     []structures.Block //probably should be the merkle tree
 	Privkey   []byte             //I'm not sure on what this type should be
 	Pubkey    []byte             //same with this one
@@ -221,7 +222,6 @@ func (n *Node) is_cur_block_full() bool {
 func (n *Node) local_transaction_loop() {
 
 	var input string
-
 	for {
 		fmt.Println("Enter author Number: ")
 		var authorID int
@@ -234,15 +234,18 @@ func (n *Node) local_transaction_loop() {
 
 		t := structures.CreateTransaction(input, authorID)
 
-		if n.Cur_block.MTree == nil {
+		if n.MTree == nil {
 			var transactions []structures.Transaction
 			transactions = append(transactions, *t)
 			n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
 		} else {
+			n.Cur_block.MTree = n.MTree
 			n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
 		}
+		n.MTree = n.Cur_block.MTree
 
 		fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
+		fmt.Printf("Amount of leafs in Merkle Tree %v\n", len(n.Cur_block.MTree.Leafs))
 	}
 
 }
