@@ -32,6 +32,7 @@ func Complete_block(block structures.Block) structures.Block{
 
     for{
         if Verify_work(*header){
+            fmt.Println("Found the proper hash to solve block!:", GenerateHash(*header))
             return block
         }
         //not enough zeroes? increment nonce and try again
