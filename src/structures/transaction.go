@@ -22,12 +22,13 @@ type Transaction struct {
 	Author int    //Will be the authors signature, that other nodes should be able to verify
 	//int is just a placeholder for now
 
+	Signature []byte
 	publicKey  rsa.PublicKey
 	//need to send it somewhere
 }
 
 //returns a signature, which is the signed serialization of the transaction
-func signTransaction(transaction *Transaction) []byte {
+func SignTransaction(transaction *Transaction) []byte {
 	privKey, pubKey := keys.GetKeys()
 	transaction.publicKey = *pubKey
 
@@ -39,7 +40,7 @@ func signTransaction(transaction *Transaction) []byte {
 }
 
 //verifies a transaction given the signature
-func verifyTransaction(transaction *Transaction, signature []byte) error {
+func VerifyTransaction(transaction *Transaction, signature []byte) error {
 	//replace with RPC call when distributed.
 	_, pubKey := keys.GetKeys()
 	transaction.publicKey = *pubKey
@@ -60,11 +61,15 @@ func CreateTransaction(text string, author int) *Transaction {
 }
 
 func (t Transaction) Serialize() []byte {
+	//don't want to serialize the signature
+	tmp_signature := t.Signature
+	t.Signature = nil
 	buf := &bytes.Buffer{}
 	if err := gob.NewEncoder(buf).Encode(t); err != nil {
 		log.Panic(err)
 		return nil
 	}
+	t.Signature = tmp_signature
 	return buf.Bytes()
 }
 

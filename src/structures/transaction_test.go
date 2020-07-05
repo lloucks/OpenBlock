@@ -8,8 +8,9 @@ import (
 func Test_and_sign_transaction(t *testing.T){
 	text := "Sample transaction"
 	transaction := CreateTransaction(text, 0)
-	signature := signTransaction(transaction)
-	err := verifyTransaction(transaction, signature)
+	signature := SignTransaction(transaction)
+	transaction.Signature = signature
+	err := VerifyTransaction(transaction, signature)
 
 	//verified transaction returns nil
 	if err != nil {
@@ -27,7 +28,7 @@ func Test_invalid_transaction(t *testing.T){
 	signature := transaction.Serialize()
 
 	//give the verfiy some unsigned data.
-	err := verifyTransaction(transaction, signature)
+	err := VerifyTransaction(transaction, signature)
 
 	//should return an error
 	if err == nil {
