@@ -22,26 +22,28 @@ type Transaction struct {
 	Author int    //Will be the authors signature, that other nodes should be able to verify
 	//int is just a placeholder for now
 
-	privateKey rsa.PrivateKey
 	publicKey  rsa.PublicKey
 	//need to send it somewhere
-	//need to sign it so it can be veried
 }
 
+//returns a signature, which is the signed serialization of the transaction
 func signTransaction(transaction *Transaction) []byte {
 	privKey, pubKey := keys.GetKeys()
-
-	transaction.privateKey = *privKey
 	transaction.publicKey = *pubKey
 
 	transactionBytes := transaction.Serialize()
 	hashed := sha256.Sum256(transactionBytes)
-	signature, _ := rsa.SignPKCS1v15(rand.Reader, &transaction.privateKey, crypto.SHA256, hashed[:])
+	signature, _ := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, hashed[:])
 
 	return signature
 }
 
-func readTransaction(transaction *Transaction, signature []byte) error {
+//verifies a transaction given the signature
+func verifyTransaction(transaction *Transaction, signature []byte) error {
+	//replace with RPC call when distributed.
+	_, pubKey := keys.GetKeys()
+	transaction.publicKey = *pubKey
+
 	hashed := sha256.Sum256(transaction.Serialize())
 	err := rsa.VerifyPKCS1v15(&transaction.publicKey, crypto.SHA256, hashed[:], signature)
 
