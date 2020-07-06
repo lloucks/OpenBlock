@@ -12,11 +12,11 @@ import (
 
 	//"strconv"
 	"brpc"
+	"crypto/rsa"
 	"encoding/binary"
 	"encoding/hex"
-	"log"
-	"crypto/rsa"
 	"keys"
+	"log"
 )
 
 type Node struct {
@@ -24,8 +24,8 @@ type Node struct {
 	Chain     []structures.Block //probably should be the merkle tree
 	Privkey   rsa.PrivateKey
 	Pubkey    rsa.PublicKey
-	Index     int                //What is this for????
-	Cur_block structures.Block   //current block to add transactions to
+	Index     int              //What is this for????
+	Cur_block structures.Block //current block to add transactions to
 
 	Blocksize int //How big our blocks will be (in transaction count, for simplicity)
 
@@ -125,13 +125,13 @@ func (n *Node) Adjust_difficulty() {
 	//blocks per min * 2 gives a difficulty check roughly every 2 mins
 	//when the duration between blocks is 20 seconds
 
-    //flat 5 seems to work better than doing it dynamically
-    adjust_block_count := 5 //int((time.Second*60)/n.Block_time) * 2
+	//flat 5 seems to work better than doing it dynamically
+	adjust_block_count := 5 //int((time.Second*60)/n.Block_time) * 2
 
-    //make sure chain is longer than we need to look at otherwise don't adjust
-    if len(n.Chain)  < adjust_block_count+1{
-        return
-    }
+	//make sure chain is longer than we need to look at otherwise don't adjust
+	if len(n.Chain) < adjust_block_count+1 {
+		return
+	}
 
 	// -1 is so we have one extra time to look at
 	blocks := n.Chain[len(n.Chain)-adjust_block_count-1:]
@@ -182,7 +182,7 @@ func (n *Node) recieve_transaction(args *brpc.Args, reply *brpc.Reply) {
 	t := args.Transaction
 
 	//Validate transaction
-	if structures.VerifyTransaction(t, t.Signature) != nil{
+	if structures.VerifyTransaction(t, t.Signature) != nil {
 		log.Fatal("Tranaction was not verified.")
 		return
 	}
@@ -233,6 +233,7 @@ func (n *Node) is_cur_block_full() bool {
 }
 
 //A goroutine that will wait for user input, make a transaction and add it to the current block
+func (n *Node) local_transaction_loop() {
 	var input string
 	for {
 		fmt.Println("Enter author Number: ")
@@ -245,7 +246,7 @@ func (n *Node) is_cur_block_full() bool {
 		fmt.Scanln(&input)
 
 		t := structures.CreateTransaction(input, authorID)
-    t.Signature = structures.SignTransaction(t)
+		t.Signature = structures.SignTransaction(t)
 
 		if n.MTree == nil {
 			var transactions []structures.Transaction
