@@ -8,6 +8,8 @@ import "encoding/pem"
 import "log"
 import "errors"
 
+//Generate keys using PKCS#1 ASN.1 specifications
+// and write to local file.
 func GenerateKeys(){
 	Priv, err := rsa.GenerateKey(rand.Reader, 4096)
 
@@ -32,6 +34,8 @@ func GenerateKeys(){
 	ioutil.WriteFile("key.priv", privBytes, 0644)
 }
 
+//Will either return keys found from local storage,
+//or will create new ones.
 func GetKeys() (*rsa.PrivateKey, *rsa.PublicKey) {
 
 	err := keysPresent()
@@ -59,6 +63,7 @@ func GetKeys() (*rsa.PrivateKey, *rsa.PublicKey) {
 	return privKey, pubKey
 }
 
+//Check to see if keys are present in the directory.
 func keysPresent() error {
 	_, err := ioutil.ReadFile("key.priv")
 	_, err2 := ioutil.ReadFile("key.pub")

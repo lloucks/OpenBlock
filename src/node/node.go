@@ -15,13 +15,15 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"log"
+	"crypto/rsa"
+	"keys"
 )
 
 type Node struct {
 	MTree     *structures.MerkleTree
 	Chain     []structures.Block //probably should be the merkle tree
-	Privkey   []byte             //I'm not sure on what this type should be
-	Pubkey    []byte             //same with this one
+	Privkey   rsa.PrivateKey
+	Pubkey    rsa.PublicKey
 	Index     int                //What is this for????
 	Cur_block structures.Block   //current block to add transactions to
 
@@ -40,7 +42,9 @@ func Make_node() Node {
 	node.Block_time = 20 * time.Second
 	node.Cur_difficulty = 3
 	node.Index = 0
-
+	tmp_privKey, tmp_pubKey := keys.GetKeys()
+	node.Privkey = *tmp_privKey
+	node.Pubkey = *tmp_pubKey
 	fmt.Println("Made a client node")
 	return node
 }
@@ -178,6 +182,10 @@ func (n *Node) recieve_transaction(args *brpc.Args, reply *brpc.Reply) {
 	t := args.Transaction
 
 	//Validate transaction
+	if structures.VerifyTransaction(t, t.Signature) != nil{
+		log.Fatal("Tranaction was not verified.")
+		return
+	}
 
 	//if valid, append it.
 	n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
@@ -225,8 +233,6 @@ func (n *Node) is_cur_block_full() bool {
 }
 
 //A goroutine that will wait for user input, make a transaction and add it to the current block
-func (n *Node) local_transaction_loop(){
-
 	var input string
 	for {
 		fmt.Println("Enter author Number: ")
@@ -239,6 +245,7 @@ func (n *Node) local_transaction_loop(){
 		fmt.Scanln(&input)
 
 		t := structures.CreateTransaction(input, authorID)
+    t.Signature = structures.SignTransaction(t)
 
 		if n.MTree == nil {
 			var transactions []structures.Transaction
@@ -253,5 +260,4 @@ func (n *Node) local_transaction_loop(){
 		fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
 		fmt.Printf("Amount of leafs in Merkle Tree %v\n", len(n.Cur_block.MTree.Leafs))
 	}
-
 }
