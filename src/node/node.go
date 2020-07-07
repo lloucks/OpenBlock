@@ -202,9 +202,16 @@ func (n *Node) Run() {
 	n.CreateGenesisBlock()
 	n.Cur_block = n.MakeBlock()
 
-	go n.local_transaction_loop()
-
 	for !n.Killed {
+
+		done := make(chan bool)
+		go n.local_transaction(done)
+		msg := <-done
+		if msg == false {
+			log.Fatal("Error in Transaction Loop")
+		}
+		fmt.Println(msg)
+
 		//if our block is FULL (to be determined when) then we try to complete it and start
 		//a new block
 		if n.is_cur_block_full() {
@@ -233,32 +240,30 @@ func (n *Node) is_cur_block_full() bool {
 }
 
 //A goroutine that will wait for user input, make a transaction and add it to the current block
-func (n *Node) local_transaction_loop() {
+func (n *Node) local_transaction(done chan bool) {
 	var input string
-	for {
-		fmt.Println("Enter author Number: ")
-		var authorID int
-		_, err := fmt.Scanf("%d", &authorID)
-		if err != nil {
-			log.Fatal("not valid author ID")
-		}
-		fmt.Println("Enter text: ")
-		fmt.Scanln(&input)
-
-		t := structures.CreateTransaction(input, authorID)
-		t.Signature = structures.SignTransaction(t)
-
-		if n.MTree == nil {
-			var transactions []structures.Transaction
-			transactions = append(transactions, *t)
-			n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
-		} else {
-			n.Cur_block.MTree = n.MTree
-			n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
-		}
-		n.MTree = n.Cur_block.MTree
-
-		fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
-		fmt.Printf("Amount of leafs in Merkle Tree %v\n", len(n.Cur_block.MTree.Leafs))
+	fmt.Println("Enter author Number: ")
+	var authorID int
+	_, err := fmt.Scanf("%d", &authorID)
+	if err != nil {
+		log.Fatal("not valid author ID")
 	}
+	fmt.Println("Enter text: ")
+	fmt.Scanln(&input)
+
+	t := structures.CreateTransaction(input, authorID)
+	t.Signature = structures.SignTransaction(t)
+	if n.Cur_block.MTree == nil {
+		var transactions []structures.Transaction
+		transactions = append(transactions, *t)
+		n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
+	} else {
+		n.Cur_block.MTree = n.MTree
+		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
+	}
+	n.MTree = n.Cur_block.MTree
+	done <- true
+
+	fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
+	fmt.Printf("Amount of leafs in Merkle Tree %v\n", len(n.Cur_block.MTree.Leafs))
 }

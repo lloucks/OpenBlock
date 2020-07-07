@@ -4,17 +4,17 @@ import (
 	"fmt"
 	//"keys"
 	//"structures"
-    "node"
+	"node"
 )
 
 func main() {
-    fmt.Println("Launching Node")
+	fmt.Println("Launching Node")
 
-    node := node.Make_node()
+	node := node.Make_node()
 
-    node.Blocksize = 2
-    node.Killed = false
+	node.Blocksize = 10
+	node.Killed = false
 
-    node.Run()
+	node.Run()
 
 }
