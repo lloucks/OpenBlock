@@ -19,7 +19,7 @@ type Block struct {
 }
 
 type BlockHeader struct {
-	Prev_block_hash int
+	Prev_block_hash [32]byte
 	Merkle_root_hash int
 	Timestamp        time.Time //created by the node making this block
 	Difficulty       uint32    //the difficulty, how many 0s need to be in PoW hash

@@ -65,7 +65,7 @@ func Test_difficulty_adjustment_long(t *testing.T) {
 	fmt.Printf("Starting block generation difficulty adjustement test\n")
 
 	node := Make_node()
-	node.Block_time = 4 * time.Second
+	node.Block_time = 2 * time.Second
 	node.Cur_difficulty = 1 //start it low and wait for it to adjust up past the target
 
 	cur_time := time.Now()

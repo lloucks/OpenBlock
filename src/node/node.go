@@ -13,8 +13,6 @@ import (
 	//"strconv"
 	"brpc"
 	"crypto/rsa"
-	"encoding/binary"
-	"encoding/hex"
 	"keys"
 	"log"
 )
@@ -84,7 +82,7 @@ func (n *Node) CreateGenesisBlock() {
 	block := structures.Block{}
 
 	block.Index = 0
-	block.Header.Prev_block_hash = 0000000000000000000000000000000000000000000000000000000000000000
+	block.Header.Prev_block_hash = [32]byte{} //all zeroes by default
 	block.Header.Difficulty = uint32(n.Cur_difficulty)
 
 	block = pow.Complete_block(block)
@@ -101,14 +99,10 @@ func (n *Node) MakeBlock() structures.Block {
 	fmt.Println("hashing previous block")
 
 	fmt.Println("Length of chain is ", len(n.Chain))
-	hexhash, err := hex.DecodeString(pow.GenerateHash(n.Chain[len(n.Chain)-1].Header))
+	hash := pow.GenerateHash(n.Chain[len(n.Chain)-1].Header)
 
-	block.Header.Prev_block_hash = int(binary.BigEndian.Uint32(hexhash))
-	if err != nil {
-		log.Fatalf("Critical error converting block hash to int: %v\n", err)
-
-	}
-	fmt.Println("hashed")
+	block.Header.Prev_block_hash = hash
+	fmt.Println("hashed previous block header and stored in current block")
 
 	//difficulty should be the same as last block unless we adjust it
 

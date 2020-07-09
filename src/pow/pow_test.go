@@ -17,7 +17,7 @@ func Test_low_difficulty(t *testing.T){
     fmt.Println("Starting low difficulty test(2-20 seconds)")
     empty_block := structures.Block{}
 
-    empty_block.Header.Difficulty = 3
+    empty_block.Header.Difficulty = 5
 
     block := Complete_block(empty_block)
 

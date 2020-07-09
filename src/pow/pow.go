@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"structures"
         "time"
+//        "encoding/binary"
 )
 
 //difficulty will be the number of zeroes to match
@@ -32,7 +33,7 @@ func Complete_block(block structures.Block) structures.Block{
 
     for{
         if Verify_work(*header){
-            fmt.Println("Found the proper hash to solve block!:", GenerateHash(*header))
+            fmt.Println("Validated hash: ", to_bit_string(GenerateHash(*header)))
             return block
         }
         //not enough zeroes? increment nonce and try again
@@ -42,7 +43,7 @@ func Complete_block(block structures.Block) structures.Block{
 
 }
 
-func GenerateHash(header structures.BlockHeader) string{
+func GenerateHash(header structures.BlockHeader) [32]byte{
 
     prevhex := to_hex_string(header.Prev_block_hash)
     merklehex := to_hex_string(header.Merkle_root_hash)
@@ -54,15 +55,9 @@ func GenerateHash(header structures.BlockHeader) string{
 
     bytes := []byte(fmt.Sprintf("%v", headerhex)) //
 
-    //make the hash
-
     hash := sha256.Sum256(bytes)
 
-    //convert back to hex
-
-    hashstr := fmt.Sprintf("%x", hash)
-
-    return hashstr
+    return hash
 
 }
 
@@ -70,20 +65,32 @@ func GenerateHash(header structures.BlockHeader) string{
 
 func Verify_work(header structures.BlockHeader) bool{
 
-    hashstr := GenerateHash(header)
+    hash := GenerateHash(header)
 
+    hashstr := to_bit_string(hash)
 
     difficulty := int(header.Difficulty)
 
-    var cmpstring string //create the string to verify we have correct nonce
-    for i := 0; i<int(difficulty); i++{
+    cmpstring := ""
+
+    for i:=0; i<difficulty; i++{
         cmpstring = cmpstring + "0"
     }
-
     if hashstr[:difficulty] == cmpstring{
         return true
     } else{
         return false
     }
 
+}
+
+
+func to_bit_string(hash [32]byte) string{
+    output := ""
+
+    for _, b := range(hash){
+        output = output + fmt.Sprintf("%08b", b)
+    }
+
+    return output
 }
