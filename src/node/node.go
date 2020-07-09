@@ -5,8 +5,11 @@
 package node
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"pow"
+	"strings"
 	"structures"
 	"time"
 
@@ -242,8 +245,13 @@ func (n *Node) local_transaction(done chan bool) {
 	if err != nil {
 		log.Fatal("not valid author ID")
 	}
+
 	fmt.Println("Enter text: ")
-	fmt.Scanln(&input)
+	reader := bufio.NewReader(os.Stdin)
+	//fmt.Scanln(&input)
+	input, _ = reader.ReadString('\n')
+	// convert CRLF to LF
+	input = strings.Replace(input, "\n", "", -1)
 
 	t := structures.CreateTransaction(input, authorID)
 	t.Signature = structures.SignTransaction(t)
