@@ -5,6 +5,7 @@ import (
 	//"keys"
 	//"structures"
 	"node"
+        "time"
 )
 
 func main() {
@@ -12,9 +13,14 @@ func main() {
 
 	node := node.Make_node()
 
-	node.Blocksize = 10
+	node.Blocksize = 2
 	node.Killed = false
 
-	node.Run()
+        go node.Run()
+        //give it 1 second to start up
+        time.Sleep(time.Second * 1)
+        fmt.Println("----------------------------------------------------------------------")
+
+	node.Cli_prompt()
 
 }

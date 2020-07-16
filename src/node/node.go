@@ -7,6 +7,7 @@ package node
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"pow"
 	"strings"
@@ -76,10 +77,6 @@ func (n *Node) GetLastBlock() structures.Block {
 	return n.Chain[len(n.Chain)-1]
 }
 
-func (n *Node) Generate_block() {
-	//TODO
-
-}
 
 func (n *Node) CreateGenesisBlock() {
 	block := structures.Block{}
@@ -193,6 +190,7 @@ func (n *Node) recieve_transaction(args *brpc.Args, reply *brpc.Reply) {
 
 //We will need to build on this when it comes to reciving from others.
 
+//This is a concurrent go_routine
 func (n *Node) Run() {
 
 	//asuming we are starting a brand new chain everytime for now.
@@ -200,23 +198,15 @@ func (n *Node) Run() {
 	n.Cur_block = n.MakeBlock()
 
 	for !n.Killed {
-
-		done := make(chan bool)
-		go n.local_transaction(done)
-		msg := <-done
-		if msg == false {
-			log.Fatal("Error in Transaction Loop")
-		}
-		fmt.Println(msg)
-
-		//if our block is FULL (to be determined when) then we try to complete it and start
-		//a new block
+		//if our block is FULL(transaction count) then we try to complete it and start
+		//a new block. We wait until full as there is no monetary incentive for nodes to work on a block.
+                //All nodes on the chain are 'lazy', they only work on blocks when they need to.
 		if n.is_cur_block_full() {
 			n.Cur_block = pow.Complete_block(n.Cur_block)
 			n.Chain = append(n.Chain, n.Cur_block)
 			n.Cur_block = n.MakeBlock()
-			fmt.Printf("Added a block to the chain\n")
 		}
+
 
 		time.Sleep(time.Millisecond * 50)
 		//else we wait for user input to send transactions
@@ -237,14 +227,16 @@ func (n *Node) is_cur_block_full() bool {
 }
 
 //A goroutine that will wait for user input, make a transaction and add it to the current block
-func (n *Node) local_transaction(done chan bool) {
+func (n *Node) Create_transaction() {
 	var input string
-	fmt.Println("Enter author Number: ")
+	//fmt.Println("Enter author Number: ")
 	var authorID int
-	_, err := fmt.Scanf("%d", &authorID)
-	if err != nil {
-		log.Fatal("not valid author ID")
-	}
+	//_, err := fmt.Scanf("%d", &authorID)
+	//if err != nil {
+	//	log.Fatal("not valid author ID")
+	//}
+
+        authorID = 0 //temporary until we figure out how to remove this if not needed
 
 	fmt.Println("Enter text: ")
 	reader := bufio.NewReader(os.Stdin)
@@ -264,8 +256,78 @@ func (n *Node) local_transaction(done chan bool) {
 		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
 	}
 	n.MTree = n.Cur_block.MTree
-	done <- true
+	//done <- true
 
 	fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
-	fmt.Printf("Amount of leafs in Merkle Tree %v\n", len(n.Cur_block.MTree.Leafs))
+	//fmt.Printf("Amount of leafs in Merkle Tree %v\n", len(n.Cur_block.MTree.Leafs))
+}
+
+//Clean up goes here
+func (n *Node) Exit(){
+
+    fmt.Println("Quiting.....")
+    n.Killed = true
+
+
+
+}
+
+func (n *Node) Verify_chain(){
+    fmt.Println("Verifying chain...")
+
+}
+
+func (n *Node) Print_chain(){
+    fmt.Println("Printing chain...")
+
+
+}
+
+
+//This function will give the option to display all posts in the chain
+//      Also displays author (public key) of the post
+//Verify the chain
+//Make a post
+//Node can be killed with ctrl-d
+func (n *Node) Cli_prompt(){
+
+    reader := bufio.NewReader(os.Stdin) //create a reader to parse input
+
+
+    options := map[string]func(){
+        "list": n.Print_chain,
+        "verify": n.Verify_chain,
+        "post": n.Create_transaction,
+    }
+
+    //n.Killed is just there in the case we want to kill it from other functions
+    for !n.Killed{
+        fmt.Println("Enter a command: (list, verify, post)")
+
+        command, err := reader.ReadString('\n')
+
+        if err == io.EOF{
+            n.Exit()
+            return
+        }
+	//Clear the newline from input
+	command = strings.Replace(command, "\n", "", -1)
+
+        //check if our command is valid
+        found := false
+        for k, v :=  range(options){
+            if command == k{
+                found = true
+                v()
+                break
+            }
+        }
+        if !found{
+            fmt.Println("Invalid command, please try again.")
+            continue
+        }
+
+
+    }
+
 }
