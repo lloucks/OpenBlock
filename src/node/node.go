@@ -26,7 +26,6 @@ type Node struct {
 	Chain     []structures.Block //probably should be the merkle tree
 	Privkey   rsa.PrivateKey
 	Pubkey    rsa.PublicKey
-	Index     int              //What is this for????
 	Cur_block structures.Block //current block to add transactions to
 
 	Blocksize int //How big our blocks will be (in transaction count, for simplicity)
@@ -43,18 +42,15 @@ func Make_node() Node {
 
 	node.Block_time = 20 * time.Second
 	node.Cur_difficulty = 3
-	node.Index = 0
 	tmp_privKey, tmp_pubKey := keys.GetKeys()
 	node.Privkey = *tmp_privKey
 	node.Pubkey = *tmp_pubKey
-	fmt.Println("Made a client node")
 	return node
 }
 
 //we can have the rpc call this
 func (n *Node) Recieve_block(block structures.Block) {
 
-	fmt.Println("Checking block valididty")
 	work_valid := pow.Verify_work(block.Header)
 
 	if !work_valid { //ignore it
@@ -64,12 +60,9 @@ func (n *Node) Recieve_block(block structures.Block) {
 
 	//other validity conditions here
 
-	fmt.Println("Block is valid")
 	//if it passes them all, then we accept it
-	block.Index = block.Index + 1
 	n.Chain = append(n.Chain, block)
 
-	fmt.Println("Chain is ", n.Chain)
 }
 
 //take the current block and try to solve it (done accepting transactions for now)
@@ -88,25 +81,29 @@ func (n *Node) CreateGenesisBlock() {
 	block = pow.Complete_block(block)
 
 	n.Recieve_block(block)
+
+        fmt.Println("Created genesis block")
 }
 
 //You wait for transactions to fill the block,
 //THEN you hash the header and increment nonce until complete.
 func (n *Node) MakeBlock() structures.Block {
 	block := structures.Block{}
-	block.Index = n.Index
+	block.Index = len(n.Chain)
 
-	fmt.Println("hashing previous block")
+	//fmt.Println("hashing previous block")
 
-	fmt.Println("Length of chain is ", len(n.Chain))
+	//fmt.Println("Length of chain is ", len(n.Chain))
 	hash := pow.GenerateHash(n.Chain[len(n.Chain)-1].Header)
 
 	block.Header.Prev_block_hash = hash
-	fmt.Println("hashed previous block header and stored in current block")
+	//fmt.Println("hashed previous block header and stored in current block")
 
 	//difficulty should be the same as last block unless we adjust it
 
 	block.Header.Difficulty = n.GetLastBlock().Header.Difficulty
+
+        block.Block_size = uint32(n.Blocksize)
 
 	return block
 }
@@ -130,7 +127,6 @@ func (n *Node) Adjust_difficulty() {
 	// -1 is so we have one extra time to look at
 	blocks := n.Chain[len(n.Chain)-adjust_block_count-1:]
 
-	fmt.Printf("Looking at %v blocks for difficulty calc\n", len(blocks))
 
 	var times []time.Time
 
@@ -163,7 +159,7 @@ func (n *Node) Adjust_difficulty() {
 		n.Cur_difficulty--
 	}
 
-	fmt.Printf("Changed difficulty to %v\n\n", n.Cur_difficulty)
+	fmt.Printf("Set difficulty to %v\n\n", n.Cur_difficulty)
 
 }
 
@@ -195,7 +191,10 @@ func (n *Node) Run() {
 
 	//asuming we are starting a brand new chain everytime for now.
 	n.CreateGenesisBlock()
+
 	n.Cur_block = n.MakeBlock()
+
+        fmt.Println("Node started")
 
 	for !n.Killed {
 		//if our block is FULL(transaction count) then we try to complete it and start
@@ -204,6 +203,7 @@ func (n *Node) Run() {
 		if n.is_cur_block_full() {
 			n.Cur_block = pow.Complete_block(n.Cur_block)
 			n.Chain = append(n.Chain, n.Cur_block)
+                        fmt.Println("Completed block ", n.Cur_block.Index+1)
 			n.Cur_block = n.MakeBlock()
 		}
 
@@ -278,7 +278,9 @@ func (n *Node) Verify_chain(){
 }
 
 func (n *Node) Print_chain(){
-    fmt.Println("Printing chain...")
+    for _, block := range(n.Chain){
+        fmt.Println(block.To_string())
+    }
 
 
 }
@@ -313,6 +315,7 @@ func (n *Node) Cli_prompt(){
 	//Clear the newline from input
 	command = strings.Replace(command, "\n", "", -1)
 
+        fmt.Println()
         //check if our command is valid
         found := false
         for k, v :=  range(options){
