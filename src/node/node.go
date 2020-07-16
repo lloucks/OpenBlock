@@ -280,6 +280,7 @@ func (n *Node) Verify_chain(){
 func (n *Node) Print_chain(){
     for _, block := range(n.Chain){
         fmt.Println(block.To_string())
+        //find a way to get transactions in order from the merkle tree
     }
 
 

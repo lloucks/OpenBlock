@@ -12,10 +12,8 @@ import (
 
 type Block struct {
     Index int
-    Magic_num  uint32 //so we know it's part of our protocol
     Block_size uint32 //number of bytes in this block
     Header     BlockHeader
-    T_count    uint32 //number of transactions in this block
     MTree      *MerkleTree
 }
 
