@@ -7,7 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/gob"
-	"keys"
+	"../keys"
 	"log"
 )
 
