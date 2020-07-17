@@ -70,7 +70,6 @@ func (n *Node) GetLastBlock() structures.Block {
 	return n.Chain[len(n.Chain)-1]
 }
 
-
 func (n *Node) CreateGenesisBlock() {
 	block := structures.Block{}
 
@@ -82,7 +81,7 @@ func (n *Node) CreateGenesisBlock() {
 
 	n.Recieve_block(block)
 
-        fmt.Println("Created genesis block")
+	fmt.Println("Created genesis block")
 }
 
 //You wait for transactions to fill the block,
@@ -103,7 +102,7 @@ func (n *Node) MakeBlock() structures.Block {
 
 	block.Header.Difficulty = n.GetLastBlock().Header.Difficulty
 
-        block.Block_size = uint32(n.Blocksize)
+	block.Block_size = uint32(n.Blocksize)
 
 	return block
 }
@@ -126,7 +125,6 @@ func (n *Node) Adjust_difficulty() {
 
 	// -1 is so we have one extra time to look at
 	blocks := n.Chain[len(n.Chain)-adjust_block_count-1:]
-
 
 	var times []time.Time
 
@@ -194,19 +192,18 @@ func (n *Node) Run() {
 
 	n.Cur_block = n.MakeBlock()
 
-        fmt.Println("Node started")
+	fmt.Println("Node started")
 
 	for !n.Killed {
 		//if our block is FULL(transaction count) then we try to complete it and start
 		//a new block. We wait until full as there is no monetary incentive for nodes to work on a block.
-                //All nodes on the chain are 'lazy', they only work on blocks when they need to.
+		//All nodes on the chain are 'lazy', they only work on blocks when they need to.
 		if n.is_cur_block_full() {
 			n.Cur_block = pow.Complete_block(n.Cur_block)
 			n.Chain = append(n.Chain, n.Cur_block)
-                        fmt.Println("Completed block ", n.Cur_block.Index+1)
+			fmt.Println("Completed block ", n.Cur_block.Index+1)
 			n.Cur_block = n.MakeBlock()
 		}
-
 
 		time.Sleep(time.Millisecond * 50)
 		//else we wait for user input to send transactions
@@ -236,7 +233,7 @@ func (n *Node) Create_transaction() {
 	//	log.Fatal("not valid author ID")
 	//}
 
-        authorID = 0 //temporary until we figure out how to remove this if not needed
+	authorID = 0 //temporary until we figure out how to remove this if not needed
 
 	fmt.Println("Enter text: ")
 	reader := bufio.NewReader(os.Stdin)
@@ -247,10 +244,11 @@ func (n *Node) Create_transaction() {
 
 	t := structures.CreateTransaction(input, authorID)
 	t.Signature = structures.SignTransaction(t)
-	if n.Cur_block.MTree == nil {
+	if n.MTree == nil {
 		var transactions []structures.Transaction
 		transactions = append(transactions, *t)
 		n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
+		n.MTree = n.Cur_block.MTree
 	} else {
 		n.Cur_block.MTree = n.MTree
 		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
@@ -263,75 +261,82 @@ func (n *Node) Create_transaction() {
 }
 
 //Clean up goes here
-func (n *Node) Exit(){
+func (n *Node) Exit() {
 
-    fmt.Println("Quiting.....")
-    n.Killed = true
-
-
+	fmt.Println("Quiting.....")
+	n.Killed = true
 
 }
 
-func (n *Node) Verify_chain(){
-    fmt.Println("Verifying chain...")
+func (n *Node) Verify_chain() {
+	fmt.Println("Verifying chain...")
 
 }
 
-func (n *Node) Print_chain(){
-    for _, block := range(n.Chain){
-        fmt.Println(block.To_string())
-        //find a way to get transactions in order from the merkle tree
-    }
+func (n *Node) Print_chain() {
+	fmt.Printf("Number of Blocks %d\n", len(n.Chain))
 
+	for _, block := range n.Chain {
+		fmt.Println(block.To_string())
+
+	}
+	//find a way to get transactions in order from the merkle tree
+	if n.MTree == nil {
+		fmt.Println("No Transactions Yet")
+		return
+	}
+	fmt.Printf("Number of Transactions %d\n", len(n.MTree.Leafs))
+	for _, l := range n.MTree.Leafs {
+		trans := structures.Deserialize(l.HashedData)
+		fmt.Println(trans)
+	}
+	fmt.Println()
 
 }
-
 
 //This function will give the option to display all posts in the chain
 //      Also displays author (public key) of the post
 //Verify the chain
 //Make a post
 //Node can be killed with ctrl-d
-func (n *Node) Cli_prompt(){
+func (n *Node) Cli_prompt() {
 
-    reader := bufio.NewReader(os.Stdin) //create a reader to parse input
+	reader := bufio.NewReader(os.Stdin) //create a reader to parse input
 
+	options := map[string]func(){
+		"list":   n.Print_chain,
+		"verify": n.Verify_chain,
+		"post":   n.Create_transaction,
+	}
 
-    options := map[string]func(){
-        "list": n.Print_chain,
-        "verify": n.Verify_chain,
-        "post": n.Create_transaction,
-    }
+	//n.Killed is just there in the case we want to kill it from other functions
+	for !n.Killed {
+		fmt.Println("Enter a command: (list, verify, post)")
 
-    //n.Killed is just there in the case we want to kill it from other functions
-    for !n.Killed{
-        fmt.Println("Enter a command: (list, verify, post)")
+		command, err := reader.ReadString('\n')
 
-        command, err := reader.ReadString('\n')
+		if err == io.EOF {
+			n.Exit()
+			return
+		}
+		//Clear the newline from input
+		command = strings.Replace(command, "\n", "", -1)
 
-        if err == io.EOF{
-            n.Exit()
-            return
-        }
-	//Clear the newline from input
-	command = strings.Replace(command, "\n", "", -1)
+		fmt.Println()
+		//check if our command is valid
+		found := false
+		for k, v := range options {
+			if command == k {
+				found = true
+				v()
+				break
+			}
+		}
+		if !found {
+			fmt.Println("Invalid command, please try again.")
+			continue
+		}
 
-        fmt.Println()
-        //check if our command is valid
-        found := false
-        for k, v :=  range(options){
-            if command == k{
-                found = true
-                v()
-                break
-            }
-        }
-        if !found{
-            fmt.Println("Invalid command, please try again.")
-            continue
-        }
-
-
-    }
+	}
 
 }
