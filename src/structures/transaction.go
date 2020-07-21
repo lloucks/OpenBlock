@@ -7,7 +7,8 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/gob"
-	"../keys"
+	"fmt"
+	"keys"
 	"log"
 )
 
@@ -82,4 +83,15 @@ func Deserialize(serialized []byte) *Transaction {
 		return nil
 	}
 	return &result
+}
+
+
+func (t *Transaction) to_string() string {
+    //Do I need to deserialize first???
+    var result string
+
+    result += fmt.Sprintf("Author: %v\n", t.publicKey)
+    result += fmt.Sprintf("Post:\n      %v\n", t.publicKey)
+
+    return result
 }

@@ -33,7 +33,7 @@ func Complete_block(block structures.Block) structures.Block{
 
     for{
         if Verify_work(*header){
-            fmt.Println("Validated hash: ", to_bit_string(GenerateHash(*header)))
+            //fmt.Println("Validated hash: ", to_bit_string(GenerateHash(*header)))
             return block
         }
         //not enough zeroes? increment nonce and try again
