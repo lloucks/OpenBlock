@@ -19,12 +19,11 @@ import (
 	"crypto/rsa"
 	"keys"
 	"log"
-  "net/rpc"
-  "net"
-  "net/http"
-  "strconv"
+	"net"
+	"net/http"
+	"net/rpc"
+	"strconv"
 )
-
 
 type Node struct {
 	//MTree     *structures.MerkleTree
@@ -42,13 +41,14 @@ type Node struct {
 }
 
 //Structs for RPC calls. Right now they only have block.
-type RequestBlockArgs struct{
-    Block structures.Block
+type RequestBlockArgs struct {
+	Block structures.Block
 }
 
-type RequestBlockReply struct{
-    Block structures.Block
+type RequestBlockReply struct {
+	Block structures.Block
 }
+
 //Functions and implementations for RPC calls.
 //Creation of socket.
 //We will need to change this at some point.
@@ -59,7 +59,7 @@ func masterSock() string {
 }
 
 func (n *Node) server() {
-	rpc.Register(m)
+	rpc.Register(n)
 	rpc.HandleHTTP()
 	//l, e := net.Listen("tcp", ":1234")
 	sockname := masterSock()
@@ -71,9 +71,9 @@ func (n *Node) server() {
 	go http.Serve(l, nil)
 }
 
-func RequestLastBlock() RequestBlockReply{
-    reply:=RequestBlockReply{Block : GetLastBlock()}
-    return reply
+func (n *Node) RequestLastBlock() RequestBlockReply {
+	reply := RequestBlockReply{Block: n.GetLastBlock()}
+	return reply
 }
 
 //We will need this function at some point.
@@ -86,7 +86,7 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 		log.Fatal("dialing:", err)
 	}
 	defer c.Close()
-    //fmt.Println(reply)
+	//fmt.Println(reply)
 	err = c.Call(rpcname, args, reply)
 	if err == nil {
 		return true
@@ -107,8 +107,8 @@ func Make_node() Node {
 	node.Pubkey = *tmp_pubKey
 
 	fmt.Println("Made a client node")
-  node.server() //<-------------------This line makes the node live, and serve as server. Ther server function is defined above. I 
-                  // Haven't tested it, but we might need to return a pointer. I may be wrong.  
+	//node.server() //<-------------------This line makes the node live, and serve as server. Ther server function is defined above. I
+	// Haven't tested it, but we might need to return a pointer. I may be wrong.
 	return node
 }
 
@@ -286,10 +286,6 @@ func (n *Node) is_cur_block_full() bool {
 		return false
 	}
 }
-
-
-
-
 
 //A goroutine that will wait for user input, make a transaction and add it to the current block
 func (n *Node) Create_transaction() {
