@@ -19,7 +19,12 @@ import (
 	"crypto/rsa"
 	"keys"
 	"log"
+  "net/rpc"
+  "net"
+  "net/http"
+  "strconv"
 )
+
 
 type Node struct {
 	//MTree     *structures.MerkleTree
@@ -36,6 +41,61 @@ type Node struct {
 	Killed bool //So the node knows to kill itself
 }
 
+//Structs for RPC calls. Right now they only have block.
+type RequestBlockArgs struct{
+    Block structures.Block
+}
+
+type RequestBlockReply struct{
+    Block structures.Block
+}
+//Functions and implementations for RPC calls.
+//Creation of socket.
+//We will need to change this at some point.
+func masterSock() string {
+	s := "/var/tmp/blockchain"
+	s += strconv.Itoa(os.Getuid())
+	return s
+}
+
+func (n *Node) server() {
+	rpc.Register(m)
+	rpc.HandleHTTP()
+	//l, e := net.Listen("tcp", ":1234")
+	sockname := masterSock()
+	os.Remove(sockname)
+	l, e := net.Listen("unix", sockname)
+	if e != nil {
+		log.Fatal("listen error:", e)
+	}
+	go http.Serve(l, nil)
+}
+
+func RequestLastBlock() RequestBlockReply{
+    reply:=RequestBlockReply{Block : GetLastBlock()}
+    return reply
+}
+
+//We will need this function at some point.
+//If we want to filter our results for the RPC calls.
+func call(rpcname string, args interface{}, reply interface{}) bool {
+	// c, err := rpc.DialHTTP("tcp", "127.0.0.1"+":1234")
+	sockname := masterSock()
+	c, err := rpc.DialHTTP("unix", sockname)
+	if err != nil {
+		log.Fatal("dialing:", err)
+	}
+	defer c.Close()
+    //fmt.Println(reply)
+	err = c.Call(rpcname, args, reply)
+	if err == nil {
+		return true
+	}
+
+	fmt.Println(err)
+	return false
+}
+
 func Make_node() Node {
 
 	node := Node{}
@@ -45,6 +105,10 @@ func Make_node() Node {
 	tmp_privKey, tmp_pubKey := keys.GetKeys()
 	node.Privkey = *tmp_privKey
 	node.Pubkey = *tmp_pubKey
+
+	fmt.Println("Made a client node")
+  node.server() //<-------------------This line makes the node live, and serve as server. Ther server function is defined above. I 
+                  // Haven't tested it, but we might need to return a pointer. I may be wrong.  
 	return node
 }
 
@@ -223,6 +287,10 @@ func (n *Node) is_cur_block_full() bool {
 	}
 }
 
+
+
+
+
 //A goroutine that will wait for user input, make a transaction and add it to the current block
 func (n *Node) Create_transaction() {
 	var input string
@@ -278,7 +346,7 @@ func (n *Node) Print_chain() {
 		fmt.Println(block.To_string())
 		//find a way to get transactions in order from the merkle tree
 		if block.MTree == nil {
-			fmt.Println("No In Transactions Yet")
+			fmt.Println("No Transactions In Block Yet")
 			return
 		}
 		for _, l := range block.MTree.Leafs {

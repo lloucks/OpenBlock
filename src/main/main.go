@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	//"keys"
-	//"structures"
+	"keys"
+	"structures"
 	"node"
-        "time"
+  "brpc"
+  "time"
 )
 
 func main() {
@@ -16,13 +17,13 @@ func main() {
 	node.Blocksize = 2
 	node.Killed = false
 
-        node.Cur_difficulty = 15
-
-        go node.Run()
-        //give it 1 second to start up
-        time.Sleep(time.Second * 1)
-        fmt.Println("----------------------------------------------------------------------")
+  node.Cur_difficulty = 15
+  go node.Run()
+  //give it 1 second to start up
+  time.Sleep(time.Second * 1)
+  fmt.Println("----------------------------------------------------------------------")
 
 	node.Cli_prompt()
 
 }
+
