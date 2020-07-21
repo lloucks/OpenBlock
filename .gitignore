@@ -5,5 +5,8 @@
 *.pub
 *.key
 *.priv
+*.png
+*.jpg
+*.jpeg
 TODO
 main
