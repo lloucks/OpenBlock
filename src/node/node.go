@@ -7,7 +7,6 @@ package node
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"pow"
 	"strings"
@@ -15,7 +14,6 @@ import (
 	"time"
 
 	//"strconv"
-	"brpc"
 	"crypto/rsa"
 	"keys"
 	"log"
@@ -225,24 +223,24 @@ func (n *Node) Adjust_difficulty() {
 
 }
 
-//RPC that other nodes call to send transactions to this node.
-
-//The header must be changed to proper RPC args/reply strandards when we get there
-func (n *Node) recieve_transaction(args *brpc.Args, reply *brpc.Reply) {
-	//Pull the transaction out of arguments
-
-	t := args.Transaction
-
-	//Validate transaction
-	if structures.VerifyTransaction(t, t.Signature) != nil {
-		log.Fatal("Tranaction was not verified.")
-		return
-	}
-
-	//if valid, append it.
-	n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
-
-}
+// //RPC that other nodes call to send transactions to this node.
+//
+// //The header must be changed to proper RPC args/reply strandards when we get there
+// func (n *Node) recieve_transaction(args *brpc.Args, reply *brpc.Reply) {
+// 	//Pull the transaction out of arguments
+//
+// 	t := args.Transaction
+//
+// 	//Validate transaction
+// 	if structures.VerifyTransaction(t, t.Signature) != nil {
+// 		log.Fatal("Tranaction was not verified.")
+// 		return
+// 	}
+//
+// 	//if valid, append it.
+// 	n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
+//
+// }
 
 //As of right now, we will just have a node building it's own chain
 
@@ -355,52 +353,5 @@ func (n *Node) Print_chain() {
 	}
 
 	fmt.Printf("Number of Transactions %d\n", totalTrans)
-
-}
-
-//This function will give the option to display all posts in the chain
-//      Also displays author (public key) of the post
-//Verify the chain
-//Make a post
-//Node can be killed with ctrl-d
-func (n *Node) Cli_prompt() {
-
-	reader := bufio.NewReader(os.Stdin) //create a reader to parse input
-
-	options := map[string]func(){
-		"list":   n.Print_chain,
-		"verify": n.Verify_chain,
-		"post":   n.Create_transaction,
-	}
-
-	//n.Killed is just there in the case we want to kill it from other functions
-	for !n.Killed {
-		fmt.Println("Enter a command: (list, verify, post)")
-
-		command, err := reader.ReadString('\n')
-
-		if err == io.EOF {
-			n.Exit()
-			return
-		}
-		//Clear the newline from input
-		command = strings.Replace(command, "\n", "", -1)
-
-		fmt.Println()
-		//check if our command is valid
-		found := false
-		for k, v := range options {
-			if command == k {
-				found = true
-				v()
-				break
-			}
-		}
-		if !found {
-			fmt.Println("Invalid command, please try again.")
-			continue
-		}
-
-	}
 
 }

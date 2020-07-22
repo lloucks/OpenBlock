@@ -1,25 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"node"
-	"time"
+	"brpc"
 )
 
 func main() {
-	fmt.Println("Launching Node")
-
-	node := node.Make_node()
-
-	node.Blocksize = 2
-	node.Killed = false
-
-	node.Cur_difficulty = 15
-	go node.Run()
-	//give it 1 second to start up
-	time.Sleep(time.Second * 1)
-	fmt.Println("----------------------------------------------------------------------")
-
-	node.Cli_prompt()
-
+	brpc.Cli_prompt()
 }
