@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"net/rpc"
 	"strconv"
+	"crypto/sha256"
 )
 
 type Node struct {
@@ -94,16 +95,21 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 	return false
 }
 
-func Make_node() Node {
 
-	node := Node{}
 
+
+func Make_node() *Node {
+
+	node := &Node{}
 	node.Block_time = 20 * time.Second
 	node.Cur_difficulty = 3
 	tmp_privKey, tmp_pubKey := keys.GetKeys()
 	node.Privkey = *tmp_privKey
+	//fmt.Printf("node.Privkey:%v\n", node.Privkey)
+	fmt.Printf("New Node Privkey:%v\n", sha256.Sum256((node.Privkey.D.Bytes())))
 	node.Pubkey = *tmp_pubKey
-
+	//fmt.Printf("node.Pubkey:%v\n", node.Pubkey)
+	//fmt.Printf("node.Pubkey:%v\n", sha256.Sum256(keys.PublicKeyToBytes(tmp_pubKey)))
 	fmt.Println("Made a client node")
 	//node.server() //<-------------------This line makes the node live, and serve as server. Ther server function is defined above. I
 	// Haven't tested it, but we might need to return a pointer. I may be wrong.
@@ -260,6 +266,7 @@ func (n *Node) Run() {
 		//if our block is FULL(transaction count) then we try to complete it and start
 		//a new block. We wait until full as there is no monetary incentive for nodes to work on a block.
 		//All nodes on the chain are 'lazy', they only work on blocks when they need to.
+
 		if n.is_cur_block_full() {
 			n.Cur_block = pow.Complete_block(n.Cur_block)
 			n.Chain = append(n.Chain, n.Cur_block)
@@ -275,6 +282,7 @@ func (n *Node) Run() {
 
 func (n *Node) is_cur_block_full() bool {
 	num_transactions := 0
+
 	if (n.Cur_block.MTree) != nil {
 		num_transactions = len(n.Cur_block.MTree.Leafs)
 	}
@@ -313,6 +321,10 @@ func (n *Node) Create_transaction() {
 	} else {
 		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
 	}
+
+	if n.Chain == nil {
+		n.Chain = []structures.Block{}
+	}
 	n.Chain[len(n.Chain)-1] = n.Cur_block
 	//done <- true
 
@@ -334,7 +346,6 @@ func (n *Node) Verify_chain() {
 }
 
 func (n *Node) Print_chain() {
-	fmt.Printf("Number of Blocks %d\n", len(n.Chain))
 	totalTrans := 0
 	for _, block := range n.Chain {
 		fmt.Println(block.To_string())
@@ -351,7 +362,6 @@ func (n *Node) Print_chain() {
 		fmt.Println()
 
 	}
-
 	fmt.Printf("Number of Transactions %d\n", totalTrans)
 
 }

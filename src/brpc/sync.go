@@ -11,9 +11,10 @@ import (
   "strings"
   "time"
   "labrpc"
+  "crypto/sha256"
 )
 
-func node_startup() node.Node {
+func node_startup() *node.Node {
   fmt.Println("Launching Node")
 
   node := node.Make_node()
@@ -39,9 +40,13 @@ func Add_new_node() {
 }
 
 func List_nodes() {
-  for v :=  range(nodes) {
-    fmt.Println(v)
+  fmt.Println("\nNode List")
+  fmt.Println("-----------------------------------------------------")
+  for i, n := range nodes {
+    fmt.Printf("Node #%d\n", i)
+    fmt.Printf("Node's Privkey:%v\n", sha256.Sum256((n.Privkey.D.Bytes())))
   }
+  fmt.Println("-----------------------------------------------------\n")
 }
 
 func Get_next() {
@@ -52,14 +57,24 @@ func Get_next() {
   }
 }
 
+func Get_prev() {
+  if len(nodes) > 0 {
+    n_index -= 1
+  }else {
+    n_index = len(nodes)-1
+  }
+}
+
+
+
 func Add_client_end(){
   end := net.MakeEnd(len(RPC_ends))
   RPC_ends = append(RPC_ends, end)
 }
 
-var nodes []node.Node
+var nodes []*node.Node
 var RPC_ends []*labrpc.ClientEnd
-var n node.Node
+var n *node.Node
 var n_index int
 var net *labrpc.Network
 
@@ -70,23 +85,29 @@ func Cli_prompt() {
   nodes = append(nodes, n)
   n_index = 0
 
+
 	reader := bufio.NewReader(os.Stdin) //create a reader to parse input
 
-	options := map[string]func(){
-		"list":   n.Print_chain,
-		"verify": n.Verify_chain,
-		"post":   n.Create_transaction,
-		"make node": Add_new_node,
-		"list nodes": List_nodes,
-		"next node": Get_next,
-	}
+
 
 	//n.Killed is just there in the case we want to kill it from other functions
 	for !n.Killed {
-    n = nodes[n_index]
-    fmt.Println("Currently on node ", n_index)
+    options := map[string]func(){
+      "list":   nodes[n_index].Print_chain,
+      "verify": nodes[n_index].Verify_chain,
+      "post":   nodes[n_index].Create_transaction,
+      "make node": Add_new_node,
+      "list nodes": List_nodes,
+      "next node": Get_next,
+      "previous node": Get_prev,
+    }
+    fmt.Println("\nCurrent Node")
+    fmt.Println("-----------------------------------------------------")
+    fmt.Printf("Currently on node #%d\n", n_index)
+    fmt.Printf("Current Node Privkey:%v\n", sha256.Sum256((nodes[n_index].Privkey.D.Bytes())))
+    fmt.Println("-----------------------------------------------------\n")
 		fmt.Println("Enter a node command: (list, verify, post)")
-    fmt.Println("or an RPC command: (make node, list nodes, next node)")
+    fmt.Println("or an RPC command: (make node, list nodes, next node, previous node)")
 
 		command, err := reader.ReadString('\n')
 
