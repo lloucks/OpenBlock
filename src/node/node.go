@@ -161,6 +161,7 @@ func (n *Node) MakeBlock() structures.Block {
 	//fmt.Println("hashing previous block")
 
 	//fmt.Println("Length of chain is ", len(n.Chain))
+
 	hash := pow.GenerateHash(n.Chain[len(n.Chain)-1].Header)
 
 	block.Header.Prev_block_hash = hash
@@ -325,7 +326,7 @@ func (n *Node) Create_transaction() {
 	if n.Chain == nil {
 		n.Chain = []structures.Block{}
 	}
-	n.Chain[len(n.Chain)-1] = n.Cur_block
+	//n.Chain[len(n.Chain)-1] = n.Cur_block
 	//done <- true
 
 	fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
@@ -347,17 +348,21 @@ func (n *Node) Verify_chain() {
 
 func (n *Node) Print_chain() {
 	totalTrans := 0
-	for _, block := range n.Chain {
+        fmt.Println("length of chain is ", len(n.Chain))
+	for i, block := range n.Chain {
+                fmt.Println("Printing block at chain index: ", i)
 		fmt.Println(block.To_string())
 		//find a way to get transactions in order from the merkle tree
+
+
 		if block.MTree == nil {
-			fmt.Println("No Transactions In Block Yet")
-			return
+			fmt.Println("No Transactions in this block")
+                        continue
 		}
 		for _, l := range block.MTree.Leafs {
 			totalTrans += 1
 			trans := structures.Deserialize(l.HashedData)
-			fmt.Println(trans)
+			fmt.Println(trans.To_string())
 		}
 		fmt.Println()
 
