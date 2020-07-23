@@ -7,7 +7,6 @@ package node
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"pow"
 	"strings"
@@ -15,7 +14,6 @@ import (
 	"time"
 
 	//"strconv"
-	"brpc"
 	"crypto/rsa"
 	"keys"
 	"log"
@@ -23,6 +21,7 @@ import (
 	"net/http"
 	"net/rpc"
 	"strconv"
+	"crypto/sha256"
 )
 
 type Node struct {
@@ -96,16 +95,21 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 	return false
 }
 
-func Make_node() Node {
 
-	node := Node{}
 
+
+func Make_node() *Node {
+
+	node := &Node{}
 	node.Block_time = 20 * time.Second
 	node.Cur_difficulty = 3
 	tmp_privKey, tmp_pubKey := keys.GetKeys()
 	node.Privkey = *tmp_privKey
+	//fmt.Printf("node.Privkey:%v\n", node.Privkey)
+	fmt.Printf("New Node Privkey:%v\n", sha256.Sum256((node.Privkey.D.Bytes())))
 	node.Pubkey = *tmp_pubKey
-
+	//fmt.Printf("node.Pubkey:%v\n", node.Pubkey)
+	//fmt.Printf("node.Pubkey:%v\n", sha256.Sum256(keys.PublicKeyToBytes(tmp_pubKey)))
 	fmt.Println("Made a client node")
 	//node.server() //<-------------------This line makes the node live, and serve as server. Ther server function is defined above. I
 	// Haven't tested it, but we might need to return a pointer. I may be wrong.
@@ -225,24 +229,24 @@ func (n *Node) Adjust_difficulty() {
 
 }
 
-//RPC that other nodes call to send transactions to this node.
-
-//The header must be changed to proper RPC args/reply strandards when we get there
-func (n *Node) recieve_transaction(args *brpc.Args, reply *brpc.Reply) {
-	//Pull the transaction out of arguments
-
-	t := args.Transaction
-
-	//Validate transaction
-	if structures.VerifyTransaction(t, t.Signature) != nil {
-		log.Fatal("Tranaction was not verified.")
-		return
-	}
-
-	//if valid, append it.
-	n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
-
-}
+// //RPC that other nodes call to send transactions to this node.
+//
+// //The header must be changed to proper RPC args/reply strandards when we get there
+// func (n *Node) recieve_transaction(args *brpc.Args, reply *brpc.Reply) {
+// 	//Pull the transaction out of arguments
+//
+// 	t := args.Transaction
+//
+// 	//Validate transaction
+// 	if structures.VerifyTransaction(t, t.Signature) != nil {
+// 		log.Fatal("Tranaction was not verified.")
+// 		return
+// 	}
+//
+// 	//if valid, append it.
+// 	n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
+//
+// }
 
 //As of right now, we will just have a node building it's own chain
 
@@ -262,6 +266,7 @@ func (n *Node) Run() {
 		//if our block is FULL(transaction count) then we try to complete it and start
 		//a new block. We wait until full as there is no monetary incentive for nodes to work on a block.
 		//All nodes on the chain are 'lazy', they only work on blocks when they need to.
+
 		if n.is_cur_block_full() {
 			n.Cur_block = pow.Complete_block(n.Cur_block)
 			n.Chain = append(n.Chain, n.Cur_block)
@@ -277,6 +282,7 @@ func (n *Node) Run() {
 
 func (n *Node) is_cur_block_full() bool {
 	num_transactions := 0
+
 	if (n.Cur_block.MTree) != nil {
 		num_transactions = len(n.Cur_block.MTree.Leafs)
 	}
@@ -315,6 +321,10 @@ func (n *Node) Create_transaction() {
 	} else {
 		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
 	}
+
+	if n.Chain == nil {
+		n.Chain = []structures.Block{}
+	}
 	n.Chain[len(n.Chain)-1] = n.Cur_block
 	//done <- true
 
@@ -336,7 +346,6 @@ func (n *Node) Verify_chain() {
 }
 
 func (n *Node) Print_chain() {
-	fmt.Printf("Number of Blocks %d\n", len(n.Chain))
 	totalTrans := 0
 	for _, block := range n.Chain {
 		fmt.Println(block.To_string())
@@ -353,54 +362,6 @@ func (n *Node) Print_chain() {
 		fmt.Println()
 
 	}
-
 	fmt.Printf("Number of Transactions %d\n", totalTrans)
-
-}
-
-//This function will give the option to display all posts in the chain
-//      Also displays author (public key) of the post
-//Verify the chain
-//Make a post
-//Node can be killed with ctrl-d
-func (n *Node) Cli_prompt() {
-
-	reader := bufio.NewReader(os.Stdin) //create a reader to parse input
-
-	options := map[string]func(){
-		"list":   n.Print_chain,
-		"verify": n.Verify_chain,
-		"post":   n.Create_transaction,
-	}
-
-	//n.Killed is just there in the case we want to kill it from other functions
-	for !n.Killed {
-		fmt.Println("Enter a command: (list, verify, post)")
-
-		command, err := reader.ReadString('\n')
-
-		if err == io.EOF {
-			n.Exit()
-			return
-		}
-		//Clear the newline from input
-		command = strings.Replace(command, "\n", "", -1)
-
-		fmt.Println()
-		//check if our command is valid
-		found := false
-		for k, v := range options {
-			if command == k {
-				found = true
-				v()
-				break
-			}
-		}
-		if !found {
-			fmt.Println("Invalid command, please try again.")
-			continue
-		}
-
-	}
 
 }

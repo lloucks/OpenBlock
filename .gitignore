@@ -2,8 +2,7 @@
 .vscode
 *.swp
 *.swo
-*.pub
-*.key
+key.*
 *.priv
 *.png
 *.jpg

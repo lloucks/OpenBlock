@@ -38,10 +38,14 @@ func GenerateKeys(){
 //or will create new ones.
 func GetKeys() (*rsa.PrivateKey, *rsa.PublicKey) {
 
+	//Generate new keys everytime right now cause we are testing on one node
+	GenerateKeys()
+	/*
 	err := keysPresent()
 	if err != nil{
 		GenerateKeys()
 	}
+	*/
 
 	privContent, err := ioutil.ReadFile("key.priv")
 	pubContent, err2 := ioutil.ReadFile("key.pub")
@@ -74,4 +78,34 @@ func keysPresent() error {
 
 	return nil
 
+}
+
+
+// PrivateKeyToBytes private key to bytes
+func PrivateKeyToBytes(priv *rsa.PrivateKey) []byte {
+	privBytes := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(priv),
+		},
+	)
+
+	return privBytes
+}
+
+
+
+// PublicKeyToBytes public key to bytes
+func PublicKeyToBytes(pub *rsa.PublicKey) []byte {
+	pubASN1, err := x509.MarshalPKIXPublicKey(pub)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pubBytes := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: pubASN1,
+	})
+
+	return pubBytes
 }
