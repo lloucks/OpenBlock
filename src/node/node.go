@@ -20,8 +20,9 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
-	"strconv"
+	//"strconv"
 	"crypto/sha256"
+        "labrpc"
 )
 
 type Node struct {
@@ -30,6 +31,8 @@ type Node struct {
 	Privkey   rsa.PrivateKey
 	Pubkey    rsa.PublicKey
 	Cur_block structures.Block //current block to add transactions to
+
+	peers []labrpc.ClientEnd
 
 	Blocksize int //How big our blocks will be (in transaction count, for simplicity)
 
@@ -51,17 +54,19 @@ type RequestBlockReply struct {
 //Functions and implementations for RPC calls.
 //Creation of socket.
 //We will need to change this at some point.
-func masterSock() string {
-	s := "/var/tmp/blockchain"
-	s += strconv.Itoa(os.Getuid())
+func masterSock(mynum int) string {
+	s := fmt.Sprintf("/var/tmp/blockchain-%v", mynum)
+	//s += strconv.Itoa(os.Getuid())
 	return s
 }
 
-func (n *Node) server() {
+func (n *Node) server(mynum int) {
 	rpc.Register(n)
 	rpc.HandleHTTP()
 	//l, e := net.Listen("tcp", ":1234")
-	sockname := masterSock()
+	sockname := masterSock(mynum)
+
+
 	os.Remove(sockname)
 	l, e := net.Listen("unix", sockname)
 	if e != nil {
@@ -77,9 +82,9 @@ func (n *Node) RequestLastBlock() RequestBlockReply {
 
 //We will need this function at some point.
 //If we want to filter our results for the RPC calls.
-func call(rpcname string, args interface{}, reply interface{}) bool {
+func Call(socket int, rpcname string, args interface{}, reply interface{}) bool {
 	// c, err := rpc.DialHTTP("tcp", "127.0.0.1"+":1234")
-	sockname := masterSock()
+	sockname := masterSock(socket)
 	c, err := rpc.DialHTTP("unix", sockname)
 	if err != nil {
 		log.Fatal("dialing:", err)
