@@ -38,11 +38,8 @@ func (n *Node) Request_block(index int, peer int) (bool, structures.Block){
 
     //other node fills out the block in reply, now we can verify it and add to chain
 
-    fmt.Printf("%v", reply.Block.Header)
-
     if pow.Verify_work(reply.Block.Header){
         fmt.Println("Requested block was verified succesfully!")
-        fmt.Println(reply.Block.To_string())
         return true, reply.Block
 
     } else {

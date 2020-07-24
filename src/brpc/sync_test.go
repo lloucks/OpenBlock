@@ -3,6 +3,7 @@ package brpc
 import (
 	"fmt"
 	"log"
+        "time"
 	"testing"
 )
 
@@ -19,7 +20,8 @@ func TestRPC(t *testing.T){
     node1 := n.Nodes[0]
     node2 := n.Nodes[1]
 
-
+    fmt.Println("Giving 1 second for nodes to generate the first blocks")
+    time.Sleep(time.Second * 1)
 
 
     fmt.Println("Genesis block on node 1:")
@@ -30,6 +32,9 @@ func TestRPC(t *testing.T){
     fmt.Println("Node 1 requesting genesis block from node 2")
     valid, blockb := node1.Request_block(0, 0)
 
+    fmt.Println("Recieved block:")
+    fmt.Printf(blockb.To_string())
+
     if !valid{
         log.Fatalf("Block was not valid, FAIL")
     }
@@ -38,8 +43,6 @@ func TestRPC(t *testing.T){
         log.Fatalf("Recieved block timestamp does not match the timestamp on node 2. FAIL")
     }
 
-    fmt.Println("Recieved block:")
-    fmt.Printf(blockb.To_string())
 
 
 }
