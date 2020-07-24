@@ -9,6 +9,13 @@ import (
 	"time"
 )
 
+
+
+
+
+
+
+
 func Test_difficulty_adjustment_positive(t *testing.T) {
 	fmt.Printf("Starting difficulty adjustment test A\n")
 

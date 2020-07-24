@@ -62,6 +62,11 @@ func (n *brpc_net) Node_startup() *node.Node {
 
 func (n *brpc_net) Add_new_node() {
     node := n.Node_startup()
+
+    for idx, x := range(n.RPC_ends[:len(n.RPC_ends)-1]){
+        node.Add_peer(*x)
+        n.Nodes[idx].Add_peer(*n.RPC_ends[len(n.RPC_ends)-1])
+    }
     n.Nodes = append(n.Nodes, node)
 }
 

@@ -13,14 +13,8 @@ import (
 	"structures"
 	"time"
 
-	//"strconv"
 	"crypto/rsa"
 	"keys"
-	"log"
-	"net"
-	"net/http"
-	"net/rpc"
-	//"strconv"
 	"crypto/sha256"
         "labrpc"
 )
@@ -42,65 +36,6 @@ type Node struct {
 	Killed bool //So the node knows to kill itself
 }
 
-//Structs for RPC calls. Right now they only have block.
-type RequestBlockArgs struct {
-	Block structures.Block
-}
-
-type RequestBlockReply struct {
-	Block structures.Block
-}
-
-//Functions and implementations for RPC calls.
-//Creation of socket.
-//We will need to change this at some point.
-func masterSock(mynum int) string {
-	s := fmt.Sprintf("/var/tmp/blockchain-%v", mynum)
-	//s += strconv.Itoa(os.Getuid())
-	return s
-}
-
-func (n *Node) server(mynum int) {
-	rpc.Register(n)
-	rpc.HandleHTTP()
-	//l, e := net.Listen("tcp", ":1234")
-	sockname := masterSock(mynum)
-
-
-	os.Remove(sockname)
-	l, e := net.Listen("unix", sockname)
-	if e != nil {
-		log.Fatal("listen error:", e)
-	}
-	go http.Serve(l, nil)
-}
-
-func (n *Node) RequestLastBlock() RequestBlockReply {
-	reply := RequestBlockReply{Block: n.GetLastBlock()}
-	return reply
-}
-
-//We will need this function at some point.
-//If we want to filter our results for the RPC calls.
-func Call(socket int, rpcname string, args interface{}, reply interface{}) bool {
-	// c, err := rpc.DialHTTP("tcp", "127.0.0.1"+":1234")
-	sockname := masterSock(socket)
-	c, err := rpc.DialHTTP("unix", sockname)
-	if err != nil {
-		log.Fatal("dialing:", err)
-	}
-	defer c.Close()
-	//fmt.Println(reply)
-	err = c.Call(rpcname, args, reply)
-	if err == nil {
-		return true
-	}
-
-	fmt.Println(err)
-	return false
-}
-
-
 
 
 func Make_node() *Node {
@@ -120,6 +55,11 @@ func Make_node() *Node {
 	// Haven't tested it, but we might need to return a pointer. I may be wrong.
 	return node
 }
+
+func (n *Node) Add_peer(peer labrpc.ClientEnd){
+    n.peers = append(n.peers, peer)
+}
+
 
 //we can have the rpc call this
 func (n *Node) Recieve_block(block structures.Block) {
