@@ -6,6 +6,11 @@ import (
 	"structures"
 )
 
+type Verification struct {
+	Verifier   int
+	BlockIndex int
+}
+
 //both the arg and the reply
 type Block_request struct {
 	Index int //requesting the block for this index
