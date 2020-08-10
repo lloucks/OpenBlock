@@ -31,14 +31,14 @@ func Cli_prompt() {
 	//n.Killed is just there in the case we want to kill it from other functions
 	for !n.Killed {
 		options := map[string]func(){
-			"list":               network.Nodes[*n_index].Print_chain,
-			"verify":             network.Nodes[*n_index].Verify_chain,
-			"post":               network.Nodes[*n_index].Create_transaction,
-			"show verifications": network.Nodes[*n_index].Print_peer_verifications,
-			"make node":          network.Add_new_node,
-			"list nodes":         network.List_nodes,
-			"next node":          network.Get_next,
-			"previous node":      network.Get_prev,
+			"list":              network.Nodes[*n_index].Print_chain,
+			"verify":            network.Nodes[*n_index].Verify_chain,
+			"post":              network.Nodes[*n_index].Create_transaction,
+			"show miner awards": network.Nodes[*n_index].Print_peer_completions,
+			"make node":         network.Add_new_node,
+			"list nodes":        network.List_nodes,
+			"next node":         network.Get_next,
+			"previous node":     network.Get_prev,
 		}
 		fmt.Println("\nCurrent Node")
 		fmt.Println("-----------------------------------------------------")
@@ -47,7 +47,7 @@ func Cli_prompt() {
 			sha256.Sum256((network.Nodes[*n_index].Privkey.D.Bytes())))
 		fmt.Println("-----------------------------------------------------")
 		fmt.Println("")
-		fmt.Println("Enter a node command: (list, verify, post, show verifications)")
+		fmt.Println("Enter a node command: (list, verify, post, show miner awards)")
 		fmt.Println("or an RPC command: (make node, list nodes, next node, previous node)")
 
 		command, err := reader.ReadString('\n')

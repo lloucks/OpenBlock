@@ -6,8 +6,8 @@ import (
 	"structures"
 )
 
-type Verification struct {
-	Verifier   int
+type Completed struct {
+	Peer       int
 	BlockIndex int
 }
 
@@ -21,14 +21,14 @@ type Block_request_reply struct {
 }
 
 type Complete_block_request struct {
-	Block    structures.Block //block to be completed
-	Index    int              //requesting the block for this index
-	Verifier int              //The peer that is trying to verify the block
+	Block structures.Block //block to be completed
+	Index int              //requesting the block for this index
+	Peer  int              //The peer that is trying to verify the block
 }
 type Complete_block_reply struct {
-	Block    structures.Block
-	Index    int //requesting the block for this index
-	Verifier int //The peer that is trying to verify the block
+	Block structures.Block
+	Index int //requesting the block for this index
+	Peer  int //The peer that is trying to verify the block
 }
 
 func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
@@ -75,21 +75,26 @@ func (n *Node) Send_block(arg *Block_request, reply *Block_request_reply) {
 /*
    This function simulates broadcasting a block for ever peer to try to verify first
 */
-func (n *Node) Broadcast_complete_block(block structures.Block) structures.Block {
+func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structures.Block) {
 	c := make(chan Complete_block_reply)
 	for i := 0; i < len(n.peers)+1; i++ {
 		go func(i int) {
 			reply := Complete_block_reply{}
-			reply.Verifier = i
+			reply.Peer = i
 			block := pow.Complete_block(block)
 			reply.Block = block
 			c <- reply
 		}(i)
 	}
-	verified := <-c
-	V := &Verification{}
-	V.Verifier = verified.Verifier
-	V.BlockIndex = block.Index
-	n.Peer_verifications = append(n.Peer_verifications, V)
-	return verified.Block
+	for i := 0; i < len(n.peers)+1; i++ {
+		completed := <-c
+		if pow.Verify_work(completed.Block.Header) {
+			V := &Completed{}
+			V.Peer = completed.Peer
+			V.BlockIndex = block.Index
+			n.Peer_completions = append(n.Peer_completions, V)
+			return true, completed.Block
+		}
+	}
+	return false, block
 }

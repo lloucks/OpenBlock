@@ -26,8 +26,8 @@ type Node struct {
 	Pubkey    rsa.PublicKey
 	Cur_block structures.Block //current block to add transactions to
 
-	peers              []labrpc.ClientEnd
-	Peer_verifications []*Verification
+	peers            []labrpc.ClientEnd
+	Peer_completions []*Completed
 
 	Blocksize int //How big our blocks will be (in transaction count, for simplicity)
 
@@ -87,8 +87,11 @@ func (n *Node) CreateGenesisBlock() {
 	block.Index = 0
 	block.Header.Prev_block_hash = [32]byte{} //all zeroes by default
 	block.Header.Difficulty = uint32(n.Cur_difficulty)
-
-	block = n.Broadcast_complete_block(block)
+	ok := false
+	ok, block = n.Broadcast_complete_block(block)
+	if !ok {
+		fmt.Println("Couldn't verify genesis block")
+	}
 
 	n.Recieve_block(block)
 
@@ -212,7 +215,11 @@ func (n *Node) Run() {
 		//All nodes on the chain are 'lazy', they only work on blocks when they need to.
 
 		if n.is_cur_block_full() {
-			n.Cur_block = n.Broadcast_complete_block(n.Cur_block)
+			ok := false
+			ok, n.Cur_block = n.Broadcast_complete_block(n.Cur_block)
+			if !ok {
+				fmt.Println("Couldn't verify block")
+			}
 			n.Chain = append(n.Chain, n.Cur_block)
 			fmt.Println("Completed block ", n.Cur_block.Index+1)
 			n.Cur_block = n.MakeBlock()
@@ -313,8 +320,8 @@ func (n *Node) Print_chain() {
 
 }
 
-func (n *Node) Print_peer_verifications() {
-	for _, V := range n.Peer_verifications {
-		fmt.Printf("\n Peer %d verified the block %d \n", V.Verifier, V.BlockIndex)
+func (n *Node) Print_peer_completions() {
+	for _, V := range n.Peer_completions {
+		fmt.Printf("\n Peer %d completed the block %d \n", V.Peer, V.BlockIndex)
 	}
 }
