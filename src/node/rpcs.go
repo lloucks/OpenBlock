@@ -73,7 +73,10 @@ func (n *Node) Send_block(arg *Block_request, reply *Block_request_reply) {
 }
 
 /*
-   This function simulates broadcasting a block for ever peer to try to verify first
+   This function simulates broadcasting a block for ever peer to try to mine first.
+   The peers race to complete the block. The first peer to complete the block, and gets it verified by the block's owner, wins the race.
+   The function will return after the first peer to mine the block, so the other Go threads trying to mine the block will stop.
+   The peer who mines the block is recorded, so they can have a reward of some type at a later point.
 */
 func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structures.Block) {
 	c := make(chan Complete_block_reply)
