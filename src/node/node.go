@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"crypto/rsa"
-	"keys"
 	"crypto/sha256"
-        "labrpc"
+	"keys"
+	"labrpc"
 )
 
 type Node struct {
@@ -26,7 +26,8 @@ type Node struct {
 	Pubkey    rsa.PublicKey
 	Cur_block structures.Block //current block to add transactions to
 
-	peers []labrpc.ClientEnd
+	peers            []labrpc.ClientEnd
+	Peer_completions []*Completed
 
 	Blocksize int //How big our blocks will be (in transaction count, for simplicity)
 
@@ -35,8 +36,6 @@ type Node struct {
 
 	Killed bool //So the node knows to kill itself
 }
-
-
 
 func Make_node() *Node {
 
@@ -56,10 +55,9 @@ func Make_node() *Node {
 	return node
 }
 
-func (n *Node) Add_peer(peer labrpc.ClientEnd){
-    n.peers = append(n.peers, peer)
+func (n *Node) Add_peer(peer labrpc.ClientEnd) {
+	n.peers = append(n.peers, peer)
 }
-
 
 //we can have the rpc call this
 func (n *Node) Recieve_block(block structures.Block) {
@@ -89,8 +87,11 @@ func (n *Node) CreateGenesisBlock() {
 	block.Index = 0
 	block.Header.Prev_block_hash = [32]byte{} //all zeroes by default
 	block.Header.Difficulty = uint32(n.Cur_difficulty)
-
-	block = pow.Complete_block(block)
+	ok := false
+	ok, block = n.Broadcast_complete_block(block)
+	if !ok {
+		fmt.Println("Couldn't verify genesis block")
+	}
 
 	n.Recieve_block(block)
 
@@ -214,7 +215,11 @@ func (n *Node) Run() {
 		//All nodes on the chain are 'lazy', they only work on blocks when they need to.
 
 		if n.is_cur_block_full() {
-			n.Cur_block = pow.Complete_block(n.Cur_block)
+			ok := false
+			ok, n.Cur_block = n.Broadcast_complete_block(n.Cur_block)
+			if !ok {
+				fmt.Println("Couldn't verify block")
+			}
 			n.Chain = append(n.Chain, n.Cur_block)
 			fmt.Println("Completed block ", n.Cur_block.Index+1)
 			n.Cur_block = n.MakeBlock()
@@ -293,16 +298,15 @@ func (n *Node) Verify_chain() {
 
 func (n *Node) Print_chain() {
 	totalTrans := 0
-        fmt.Println("length of chain is ", len(n.Chain))
+	fmt.Println("length of chain is ", len(n.Chain))
 	for i, block := range n.Chain {
-                fmt.Println("Printing block at chain index: ", i)
+		fmt.Println("Printing block at chain index: ", i)
 		fmt.Println(block.To_string())
 		//find a way to get transactions in order from the merkle tree
 
-
 		if block.MTree == nil {
 			fmt.Println("No Transactions in this block")
-                        continue
+			continue
 		}
 		for _, l := range block.MTree.Leafs {
 			totalTrans += 1
@@ -314,4 +318,10 @@ func (n *Node) Print_chain() {
 	}
 	fmt.Printf("Number of Transactions %d\n", totalTrans)
 
+}
+
+func (n *Node) Print_peer_completions() {
+	for _, V := range n.Peer_completions {
+		fmt.Printf("\n Peer %d completed the block %d \n", V.Peer, V.BlockIndex)
+	}
 }
