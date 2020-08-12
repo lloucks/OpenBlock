@@ -15,7 +15,6 @@ import (
 	"time"
 
 	//"strconv"
-	"brpc"
 	"crypto/rsa"
 	"keys"
 	"log"
@@ -23,6 +22,7 @@ import (
   "net"
   "net/http"
   "strconv"
+  "math/rand"
 )
 
 
@@ -39,6 +39,11 @@ type Node struct {
 	Cur_difficulty int           //how many zeros we want (in bits) at front of hash
 
 	Killed bool //So the node knows to kill itself
+
+	Peer_completions []*Completed
+	Index int
+	SockName string
+	PeerSocks []string
 }
 
 //Structs for RPC calls. Right now they only have block.
@@ -52,35 +57,38 @@ type RequestBlockReply struct{
 //Functions and implementations for RPC calls.
 //Creation of socket.
 //We will need to change this at some point.
-func masterSock() string {
-	s := "/var/tmp/blockchain"
+func NodeSock() string {
+	d := rand.Intn(9999)
+	s := "/var/tmp/blockchain-"
 	s += strconv.Itoa(os.Getuid())
+	s += strconv.Itoa(d)
 	return s
 }
 
-func (n *Node) server() {
-	rpc.Register(m)
-	rpc.HandleHTTP()
+func (n *Node) Server() {
+	rpc.Register(n)
+	//rpc.HandleHTTP()
 	//l, e := net.Listen("tcp", ":1234")
-	sockname := masterSock()
+	sockname := NodeSock()
 	os.Remove(sockname)
 	l, e := net.Listen("unix", sockname)
 	if e != nil {
 		log.Fatal("listen error:", e)
 	}
+	n.SockName = sockname
 	go http.Serve(l, nil)
+	
 }
 
 func RequestLastBlock() RequestBlockReply{
-    reply:=RequestBlockReply{Block : GetLastBlock()}
+    reply:=RequestBlockReply{}
     return reply
 }
 
 //We will need this function at some point.
 //If we want to filter our results for the RPC calls.
-func call(rpcname string, args interface{}, reply interface{}) bool {
+func (n *Node) Call(sockname string, rpcname string, args interface{}, reply interface{}) bool {
 	// c, err := rpc.DialHTTP("tcp", "127.0.0.1"+":1234")
-	sockname := masterSock()
 	c, err := rpc.DialHTTP("unix", sockname)
 	if err != nil {
 		log.Fatal("dialing:", err)
@@ -96,9 +104,10 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 	return false
 }
 
-func Make_node() Node {
+func Make_node(i int) *Node {
 
 	node := Node{}
+	node.Index = i
 
 	node.Block_time = 20 * time.Second
 	node.Cur_difficulty = 3
@@ -107,9 +116,9 @@ func Make_node() Node {
 	node.Pubkey = *tmp_pubKey
 
 	fmt.Println("Made a client node")
-  node.server() //<-------------------This line makes the node live, and serve as server. Ther server function is defined above. I 
+    node.Server() //<-------------------This line makes the node live, and serve as server. Ther server function is defined above. I 
                   // Haven't tested it, but we might need to return a pointer. I may be wrong.  
-	return node
+	return &node
 }
 
 //we can have the rpc call this
@@ -227,22 +236,7 @@ func (n *Node) Adjust_difficulty() {
 
 //RPC that other nodes call to send transactions to this node.
 
-//The header must be changed to proper RPC args/reply strandards when we get there
-func (n *Node) recieve_transaction(args *brpc.Args, reply *brpc.Reply) {
-	//Pull the transaction out of arguments
 
-	t := args.Transaction
-
-	//Validate transaction
-	if structures.VerifyTransaction(t, t.Signature) != nil {
-		log.Fatal("Tranaction was not verified.")
-		return
-	}
-
-	//if valid, append it.
-	n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
-
-}
 
 //As of right now, we will just have a node building it's own chain
 
@@ -408,3 +402,7 @@ func (n *Node) Cli_prompt() {
 	}
 
 }
+
+
+
+

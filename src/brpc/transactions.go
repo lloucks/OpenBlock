@@ -3,7 +3,7 @@
 package brpc
 
 import (
-	"../structures"
+	"structures"
 )
 
 //Basic rpc structures to communicate transactions
