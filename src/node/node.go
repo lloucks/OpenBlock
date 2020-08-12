@@ -26,7 +26,7 @@ type Node struct {
 	Pubkey    rsa.PublicKey
 	Cur_block structures.Block //current block to add transactions to
 
-	peers            []labrpc.ClientEnd
+	peers            []*labrpc.ClientEnd
 	Peer_completions []*Completed
 
 	Blocksize int //How big our blocks will be (in transaction count, for simplicity)
@@ -55,7 +55,11 @@ func Make_node() *Node {
 	return node
 }
 
-func (n *Node) Add_peer(peer labrpc.ClientEnd) {
+func (n *Node) Add_peers(peers []*labrpc.ClientEnd){
+	n.peers = peers
+}
+
+func (n *Node) Add_peer(peer *labrpc.ClientEnd) {
 	n.peers = append(n.peers, peer)
 }
 

@@ -54,7 +54,6 @@ func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 		fmt.Println("Returned block did not pass verification or was not known")
 		return false, reply.Block
 	}
-
 }
 
 func (n *Node) Foo(){

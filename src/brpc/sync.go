@@ -8,6 +8,8 @@ import (
   "time"
   "labrpc"
   "crypto/sha256"
+  crand "crypto/rand"
+  "encoding/base64"
 )
 
 type brpc_net struct{
@@ -15,24 +17,15 @@ type brpc_net struct{
      RPC_ends []*labrpc.ClientEnd
      Net *labrpc.Network
      N_index int
+     endnames [][]string
 }
 
-func (n *brpc_net) Add_client_end(){
-  end := n.Net.MakeEnd(len(n.RPC_ends))
-  n.RPC_ends = append(n.RPC_ends, end)
-}
-
-func (n *brpc_net) Add_server(){
-  last_added := len(n.Nodes)-1
-  svc := labrpc.MakeService(n.Nodes[last_added])
-  svr := labrpc.MakeServer()
-  svr.AddService(svc)
-  n.Net.AddServer(last_added, svr)
-
-  for index, _ := range n.RPC_ends {
-    //n.Net.Connect(n.RPC_ends[index], svr)
-    n.Net.Enable(index, true)
-  }
+//from raft/config.go to generate random string
+func randstring(n int) string {
+  b := make([]byte, 2*n)
+  crand.Read(b)
+  s := base64.URLEncoding.EncodeToString(b)
+  return s[0:n]
 }
 
 func (n *brpc_net) Get_next() {
@@ -66,22 +59,7 @@ func (n *brpc_net) Node_startup() *node.Node {
   //wait for genesis block.
   time.Sleep(time.Second * 1)
 
-  n.Add_client_end()
-
   return node
-}
-
-func (n *brpc_net) Add_new_node() {
-    node := n.Node_startup()
-
-    for idx, x := range(n.RPC_ends[:len(n.RPC_ends)-1]){
-        node.Add_peer(*x)
-        n.Nodes[idx].Add_peer(*n.RPC_ends[len(n.RPC_ends)-1])
-    }
-
-    n.Nodes = append(n.Nodes, node)
-
-    n.Add_server()
 }
 
 func (n *brpc_net) List_nodes() {
@@ -99,11 +77,47 @@ func (n *brpc_net) List_nodes() {
     fmt.Printf(result)
 }
 
+func Make(n *node.Node, ends []*labrpc.ClientEnd) *node.Node {
+  n.Add_peers(ends)
+  return n
+}
+
+func (n *brpc_net) Add_new_node() {
+    node := n.Node_startup()
+    n.Nodes = append(n.Nodes, node)
+
+    //get the index of the newest node.
+    node_index := len(n.Nodes)-1
+
+    endnames := make([]string, node_index+1)
+    n.endnames = append(n.endnames, endnames)
+    for index := range n.endnames[node_index]{
+      n.endnames[node_index][index] = randstring(20)
+    }
+
+    ends := make([]*labrpc.ClientEnd, node_index+1)
+    for index := range ends {
+      ends[index] = n.Net.MakeEnd(n.endnames[node_index][index])
+      n.Net.Connect(n.endnames[node_index][index], index)
+    }
+
+    new_node := Make(node, ends)
+    svc := labrpc.MakeService(new_node)
+    srv := labrpc.MakeServer()
+    srv.AddService(svc)
+    n.Net.AddServer(node_index, srv)
+
+    n.Grow_endpoints()
+}
+
 func Make_brpc_network() brpc_net{
 
     network := brpc_net{}
 
     network.Net = labrpc.MakeNetwork()
+
+    //create the first endname
+    network.endnames = make([][]string, 1)
 
     return network
 
