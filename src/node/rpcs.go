@@ -2,8 +2,8 @@ package node
 
 import (
 	"fmt"
-	"pow"
-	"structures"
+	"../pow"
+	"../structures"
 )
 
 type Completed struct {
@@ -42,7 +42,7 @@ func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 	reply.Block = block
 
 	//we send an empty block for the other node to fill
-	n.peers[peer].Call("Send_block", &request, &reply)
+	n.Call(n.PeerSocks[peer], "Send_block", &request, &reply)
 
 	//other node fills out the block in reply, now we can verify it and add to chain
 
@@ -54,13 +54,14 @@ func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 		fmt.Println("Returned block did not pass verification or was not known")
 		return false, reply.Block
 	}
+
 }
 
 func (n *Node) Foo(){
-	for peer, _ := range n.peers {
+	for peer, _ := range n.PeerSocks{
 		args := Block_request{}
 		reply := Block_request_reply{}
-		result := n.peers[peer].Call("Node.Foo_reply", &args, &reply)
+		result := n.Call(n.PeerSocks[peer], "Node.Foo_reply", &args, &reply)
 		fmt.Println("Sent RPC to ", peer, " result was ", result)
 	}
 }
@@ -91,7 +92,7 @@ func (n *Node) Send_block(arg *Block_request, reply *Block_request_reply) {
 */
 func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structures.Block) {
 	c := make(chan Complete_block_reply)
-	for i := 0; i < len(n.peers)+1; i++ {
+	for i := 0; i < len(n.PeerSocks); i++ {
 		go func(i int) {
 			reply := Complete_block_reply{}
 			reply.Peer = i
@@ -100,7 +101,7 @@ func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structure
 			c <- reply
 		}(i)
 	}
-	for i := 0; i < len(n.peers)+1; i++ {
+	for i := 0; i < len(n.PeerSocks); i++ {
 		completed := <-c
 		if pow.Verify_work(completed.Block.Header) {
 			V := &Completed{}
