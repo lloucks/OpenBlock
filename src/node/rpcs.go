@@ -2,8 +2,8 @@ package node
 
 import (
 	"fmt"
-	"../pow"
-	"../structures"
+	"pow"
+	"structures"
 )
 
 type Completed struct {

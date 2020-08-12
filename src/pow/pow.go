@@ -3,7 +3,7 @@ package pow
 import (
 	"crypto/sha256"
 	"fmt"
-	"../structures"
+	"structures"
         "time"
 //        "encoding/binary"
 )

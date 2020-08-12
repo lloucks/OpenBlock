@@ -8,7 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
-	"../keys"
+	"keys"
 	"log"
 )
 
