@@ -7,6 +7,7 @@ import (
   "node"
   "time"
   "crypto/sha256"
+  "net/rpc"
 )
 
 type brpc_net struct{
@@ -42,6 +43,7 @@ func (n *brpc_net) Node_startup() *node.Node {
   fmt.Println("Launching Node")
   i := len(n.Nodes)
   node := node.Make_node(i)
+  rpc.Register(node)
 
 
   node.Blocksize = 2
@@ -81,6 +83,7 @@ func (n *brpc_net) List_nodes() {
 
 func Make_brpc_network() brpc_net{
 
+    rpc.HandleHTTP()
     network := brpc_net{}
 
     network.N_index = 0

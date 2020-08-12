@@ -42,7 +42,7 @@ func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 	reply.Block = block
 
 	//we send an empty block for the other node to fill
-	n.Call(n.PeerSocks[peer], "Send_block", &request, &reply)
+        n.Call(n.PeerSocks[peer], "Node.Send_block", &request, &reply)
 
 	//other node fills out the block in reply, now we can verify it and add to chain
 
@@ -70,7 +70,7 @@ func (n *Node) Foo_reply(arg *Block_request, reply *Block_request_reply){
 	fmt.Println("I have recieved the RPC.")
 }
 
-func (n *Node) Send_block(arg *Block_request, reply *Block_request_reply) {
+func (n *Node) Send_block(arg *Block_request, reply *Block_request_reply) error {
 
 	fmt.Println("Got a block request for index: ", arg.Index)
 
@@ -82,6 +82,8 @@ func (n *Node) Send_block(arg *Block_request, reply *Block_request_reply) {
 		fmt.Println("I don't have this block. Returning an empty block instead")
 		reply.Block = structures.Block{} //should be invalid when verified
 	}
+
+        return nil
 }
 
 /*
