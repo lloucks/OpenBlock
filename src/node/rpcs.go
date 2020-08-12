@@ -33,16 +33,16 @@ type Complete_block_reply struct {
 
 func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 
-	request := Block_request{}
+	request := RequestBlockArgs{}
 	request.Index = index
 
-	reply := Block_request_reply{}
+	reply := RequestBlockReply{}
 	block := structures.Block{}
 
 	reply.Block = block
 
 	//we send an empty block for the other node to fill
-	n.Call(n.PeerSocks[peer], "Send_block", &request, &reply)
+	n.Call(n.PeerSocks[peer], "Node.Send_block", &request, &reply)
 
 	//other node fills out the block in reply, now we can verify it and add to chain
 
@@ -66,22 +66,23 @@ func (n *Node) Foo(){
 	}
 }
 
-func (n *Node) Foo_reply(arg *Block_request, reply *Block_request_reply){
+func (n *Node) Foo_reply(args *RequestBlockArgs, reply *RequestBlockReply) error {
 	fmt.Println("I have recieved the RPC.")
+	return nil
 }
 
-func (n *Node) Send_block(arg *Block_request, reply *Block_request_reply) {
+func (n *Node) Send_block(args *RequestBlockArgs, reply *RequestBlockReply) error {
+	fmt.Println("Got a block request for index: ", args.Index)
 
-	fmt.Println("Got a block request for index: ", arg.Index)
-
-	if len(n.Chain) >= arg.Index {
+	if len(n.Chain) > args.Index {
 		fmt.Println("I have this block, sending....")
-		reply.Block = n.Chain[arg.Index]
+		reply.Block = n.Chain[args.Index]
 
 	} else {
 		fmt.Println("I don't have this block. Returning an empty block instead")
 		reply.Block = structures.Block{} //should be invalid when verified
 	}
+	return nil
 }
 
 /*
@@ -113,3 +114,5 @@ func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structure
 	}
 	return false, block
 }
+
+

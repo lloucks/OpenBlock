@@ -48,10 +48,12 @@ type Node struct {
 
 //Structs for RPC calls. Right now they only have block.
 type RequestBlockArgs struct{
+	Index int
     Block structures.Block
 }
 
 type RequestBlockReply struct{
+	Index int
     Block structures.Block
 }
 //Functions and implementations for RPC calls.
