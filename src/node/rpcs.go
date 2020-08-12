@@ -57,6 +57,19 @@ func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 
 }
 
+func (n *Node) Foo(){
+	for peer, _ := range n.peers {
+		args := Block_request{}
+		reply := Block_request_reply{}
+		result := n.peers[peer].Call("Node.Foo_reply", &args, &reply)
+		fmt.Println("Sent RPC to ", peer, " result was ", result)
+	}
+}
+
+func (n *Node) Foo_reply(arg *Block_request, reply *Block_request_reply){
+	fmt.Println("I have recieved the RPC.")
+}
+
 func (n *Node) Send_block(arg *Block_request, reply *Block_request_reply) {
 
 	fmt.Println("Got a block request for index: ", arg.Index)
@@ -69,7 +82,6 @@ func (n *Node) Send_block(arg *Block_request, reply *Block_request_reply) {
 		fmt.Println("I don't have this block. Returning an empty block instead")
 		reply.Block = structures.Block{} //should be invalid when verified
 	}
-
 }
 
 /*

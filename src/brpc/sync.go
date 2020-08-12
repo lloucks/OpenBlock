@@ -10,8 +10,6 @@ import (
   "crypto/sha256"
 )
 
-
-
 type brpc_net struct{
      Nodes []*node.Node
      RPC_ends []*labrpc.ClientEnd
@@ -22,6 +20,19 @@ type brpc_net struct{
 func (n *brpc_net) Add_client_end(){
   end := n.Net.MakeEnd(len(n.RPC_ends))
   n.RPC_ends = append(n.RPC_ends, end)
+}
+
+func (n *brpc_net) Add_server(){
+  last_added := len(n.Nodes)-1
+  svc := labrpc.MakeService(n.Nodes[last_added])
+  svr := labrpc.MakeServer()
+  svr.AddService(svc)
+  n.Net.AddServer(last_added, svr)
+
+  for index, _ := range n.RPC_ends {
+    //n.Net.Connect(n.RPC_ends[index], svr)
+    n.Net.Enable(index, true)
+  }
 }
 
 func (n *brpc_net) Get_next() {
@@ -67,7 +78,10 @@ func (n *brpc_net) Add_new_node() {
         node.Add_peer(*x)
         n.Nodes[idx].Add_peer(*n.RPC_ends[len(n.RPC_ends)-1])
     }
+
     n.Nodes = append(n.Nodes, node)
+
+    n.Add_server()
 }
 
 func (n *brpc_net) List_nodes() {
@@ -84,8 +98,6 @@ func (n *brpc_net) List_nodes() {
     //commands if we returned anything so must print out here anyway.
     fmt.Printf(result)
 }
-
-
 
 func Make_brpc_network() brpc_net{
 
