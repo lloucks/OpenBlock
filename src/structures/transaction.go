@@ -100,12 +100,12 @@ func Deserialize(serialized []byte) *Transaction {
 }
 
 
-func (t *Transaction) to_string() string {
-    //Do I need to deserialize first???
+func (t *Transaction) To_string() string {
+    //Must be desirialized before calling this
     var result string
 
-    result += fmt.Sprintf("Author: %v\n", t.publicKey)
-    result += fmt.Sprintf("Post:\n      %v\n", t.publicKey)
+    result += fmt.Sprintf("Author: %x\n", t.publicKey)
+    result += fmt.Sprintf("Post:\n      %v\n", t.Text)
 
     return result
 }

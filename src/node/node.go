@@ -309,7 +309,7 @@ func (n *Node) Print_posts() {
 		for _, l := range block.MTree.Leafs {
 			totalTrans += 1
 			trans := structures.Deserialize(l.HashedData)
-			fmt.Println(trans)
+			fmt.Println(trans.To_string())
 		}
 		fmt.Println()
 	}
