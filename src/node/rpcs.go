@@ -30,6 +30,11 @@ type Complete_block_reply struct {
 	Index int //requesting the block for this index
 	Peer  int //The peer that is trying to verify the block
 }
+func RequestLastBlock() RequestBlockReply{
+    reply:=RequestBlockReply{}
+    return reply
+}
+
 
 func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 
@@ -42,12 +47,12 @@ func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 	reply.Block = block
 
 	//we send an empty block for the other node to fill
-	for z, p := range n.PeerSocks{
+	for z, p := range n.PeerPorts{
 		fmt.Println(z)
 		fmt.Println(p)
 	}
 	fmt.Println("node-1 #:", n.Index)
-    n.Call(n.PeerSocks[peer], "Server.Send_block", &request, &reply)
+    n.Call(n.PeerPorts[peer], "Server.Send_block", &request, &reply)
 
 	//other node fills out the block in reply, now we can verify it and add to chain
 	if pow.Verify_work(reply.Block.Header) {
@@ -61,11 +66,28 @@ func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 
 }
 
+//we can have the rpc call this
+func (n *Node) Recieve_block(block structures.Block) {
+
+	work_valid := pow.Verify_work(block.Header)
+
+	if !work_valid { //ignore it
+		fmt.Println("Block is invalid!")
+		return
+	}
+
+	//other validity conditions here
+
+	//if it passes them all, then we accept it
+	n.Chain = append(n.Chain, block)
+
+}
+
 func (n *Node) Foo(){
-	for peer, _ := range n.PeerSocks{
+	for peer, _ := range n.PeerPorts{
 		args := Block_request{}
 		reply := Block_request_reply{}
-		result := n.Call(n.PeerSocks[peer], "Node.Foo_reply", &args, &reply)
+		result := n.Call(n.PeerPorts[peer], "Node.Foo_reply", &args, &reply)
 		fmt.Println("Sent RPC to ", peer, " result was ", result)
 	}
 }
@@ -81,7 +103,7 @@ func (n *Node) Foo(){
 */
 func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structures.Block) {
 	c := make(chan Complete_block_reply)
-	for i := 0; i < len(n.PeerSocks); i++ {
+	for i := 0; i < len(n.PeerPorts); i++ {
 		go func(i int) {
 			reply := Complete_block_reply{}
 			reply.Peer = i
@@ -90,7 +112,7 @@ func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structure
 			c <- reply
 		}(i)
 	}
-	for i := 0; i < len(n.PeerSocks); i++ {
+	for i := 0; i < len(n.PeerPorts); i++ {
 		completed := <-c
 		if pow.Verify_work(completed.Block.Header) {
 			V := &Completed{}

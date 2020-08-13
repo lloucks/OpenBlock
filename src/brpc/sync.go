@@ -14,7 +14,7 @@ import (
 
 type brpc_net struct{
 	 Nodes []*node.Node
-	 SockNames []string
+	 PortNums []string
 	 N_index int
 }
 
@@ -49,7 +49,7 @@ func (n *brpc_net) Get_next() {
 
 
 func NodeSock() string {
-	d := rand.Intn(2000)+2000
+	d := rand.Intn(1000)+2000
 	s := ":"
 	//s := "/var/tmp/blockchain-"
 	//s += strconv.Itoa(os.Getuid())
@@ -62,9 +62,9 @@ func (n *brpc_net) Node_startup() *node.Node {
   fmt.Println("Launching Node")
   i := len(n.Nodes)
   node := node.Make_node(i)
-  node.SockName = NodeSock()
+  //node.PortNum = NodeSock()
   node.Name = nodeName
-  Serve(node.Name, node.SockName, node)
+  Serve(node.Name, node.PortNum, node)
 
   node.Blocksize = 2
   node.Killed = false
@@ -77,9 +77,9 @@ func (n *brpc_net) Node_startup() *node.Node {
   time.Sleep(time.Second * 1)
 
   n.Nodes = append(n.Nodes, node)
-  n.SockNames = append(n.SockNames, node.SockName)
+  n.PortNums = append(n.PortNums, node.PortNum)
   for _, node_i := range n.Nodes{
-      node_i.PeerSocks = n.SockNames
+      node_i.PeerPorts = n.PortNums
   }
 
   return node

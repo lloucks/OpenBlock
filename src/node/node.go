@@ -41,8 +41,8 @@ type Node struct {
 	Peer_completions []*Completed
 	Index int
 	Name string
-	SockName string
-	PeerSocks []string
+	PortNum string
+	PeerPorts []string
 	
 	
 }
@@ -61,16 +61,13 @@ type RequestBlockReply struct{
 
 
 
-func RequestLastBlock() RequestBlockReply{
-    reply:=RequestBlockReply{}
-    return reply
-}
+
 
 //We will need this function at some point.
 //If we want to filter our results for the RPC calls.
-func (n *Node) Call(sockname string, rpcname string, args interface{}, reply interface{}) bool {
+func (n *Node) Call(PortNum string, rpcname string, args interface{}, reply interface{}) bool {
 	// c, err := rpc.DialHTTP("tcp", "127.0.0.1"+":1234")
-	c, err := rpc.DialHTTP("tcp", sockname)
+	c, err := rpc.DialHTTP("tcp", PortNum)
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}
@@ -102,22 +99,7 @@ func Make_node(i int) *Node {
 	return &node
 }
 
-//we can have the rpc call this
-func (n *Node) Recieve_block(block structures.Block) {
 
-	work_valid := pow.Verify_work(block.Header)
-
-	if !work_valid { //ignore it
-		fmt.Println("Block is invalid!")
-		return
-	}
-
-	//other validity conditions here
-
-	//if it passes them all, then we accept it
-	n.Chain = append(n.Chain, block)
-
-}
 
 //take the current block and try to solve it (done accepting transactions for now)
 func (n *Node) GetLastBlock() structures.Block {
@@ -216,13 +198,8 @@ func (n *Node) Adjust_difficulty() {
 }
 
 //RPC that other nodes call to send transactions to this node.
-
-
-
 //As of right now, we will just have a node building it's own chain
-
 //We will need to build on this when it comes to reciving from others.
-
 //This is a concurrent go_routine
 func (n *Node) Run() {
 
@@ -263,9 +240,6 @@ func (n *Node) is_cur_block_full() bool {
 }
 
 
-
-
-
 //A goroutine that will wait for user input, make a transaction and add it to the current block
 func (n *Node) Create_transaction() {
 	var input string
@@ -303,7 +277,6 @@ func (n *Node) Create_transaction() {
 
 //Clean up goes here
 func (n *Node) Exit() {
-
 	fmt.Println("Quiting.....")
 	n.Killed = true
 
@@ -330,7 +303,6 @@ func (n *Node) Print_chain() {
 			fmt.Println(trans)
 		}
 		fmt.Println()
-
 	}
 
 	fmt.Printf("Number of Transactions %d\n", totalTrans)
@@ -382,13 +354,6 @@ func (n *Node) Cli_prompt() {
 
 	}
 
-}
-
-
-func (n *Node) Test_Call(args *RequestBlockArgs, reply *RequestBlockReply) error {
-    
-    fmt.Println("I am here")
-    return nil
 }
 
 func (n *Node) Print_peer_completions() {

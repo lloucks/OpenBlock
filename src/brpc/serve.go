@@ -7,12 +7,13 @@ import (
 	"net/rpc"
 	"node"
 	"structures"
+	"strconv"
 )
 
 // RPC Server
 type Server struct {
 	Node *node.Node
-	SockName string
+	PortNum string
     name string
 }
 
@@ -48,10 +49,14 @@ func Serve(name, port string, n *node.Node) {
     http.DefaultServeMux = oldMux
     // ===========================
 
-    l, err := net.Listen("tcp", port)
+    l, err := net.Listen("tcp", ":0")
     if err != nil {
         panic(err)
-    }
+	}
+	fmt.Println("Using port:", l.Addr().(*net.TCPAddr).Port)
+	p := ":"
+	p += strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
+	s.Node.PortNum = p
     go http.Serve(l, mux)
 }
 
