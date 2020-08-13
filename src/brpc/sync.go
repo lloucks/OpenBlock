@@ -27,14 +27,15 @@ func (n *brpc_net) Get_next() {
     }
   }
   
-  func (n *brpc_net) Get_prev() {
+func (n *brpc_net) Get_prev() {
     if len(n.Nodes) > 0 {
       n.N_index -= 1
     }else {
       n.N_index = len(n.Nodes)-1
     }
   }
-  func RandStringRunes(n int) string {
+  
+func RandStringRunes(n int) string {
     var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
     b := make([]rune, n)
     for i := range b {
@@ -43,9 +44,9 @@ func (n *brpc_net) Get_next() {
     return string(b)
 }
 
-  func (n *brpc_net) Add_new_node() { 
-	  n.Node_startup()
-  }
+func (n *brpc_net) Add_new_node() { 
+  n.Node_startup()
+}
 
 
 func NodeSock() string {

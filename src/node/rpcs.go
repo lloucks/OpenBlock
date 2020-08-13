@@ -83,18 +83,6 @@ func (n *Node) Recieve_block(block structures.Block) {
 
 }
 
-func (n *Node) Foo(){
-	for peer, _ := range n.PeerPorts{
-		args := Block_request{}
-		reply := Block_request_reply{}
-		result := n.Call(n.PeerPorts[peer], "Node.Foo_reply", &args, &reply)
-		fmt.Println("Sent RPC to ", peer, " result was ", result)
-	}
-}
-
-
-
-
 /*
    This function simulates broadcasting a block for ever peer to try to mine first.
    The peers race to complete the block. The first peer to complete the block, and gets it verified by the block's owner, wins the race.

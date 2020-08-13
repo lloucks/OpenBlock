@@ -47,7 +47,7 @@ func GenerateHash(header structures.BlockHeader) [32]byte{
 
     prevhex := to_hex_string(header.Prev_block_hash)
     merklehex := to_hex_string(header.Merkle_root_hash)
-    timehex := to_hex_string(header.Timestamp)
+    timehex := to_hex_string(header.Timestamp.Unix())
     bitshex := to_hex_string(header.Difficulty)
     noncehex := to_hex_string(header.Nonce)
 
@@ -76,6 +76,9 @@ func Verify_work(header structures.BlockHeader) bool{
     for i:=0; i<difficulty; i++{
         cmpstring = cmpstring + "0"
     }
+
+    fmt.Println("Verifying work ", cmpstring, " block: ", hashstr[:difficulty])
+
     if hashstr[:difficulty] == cmpstring{
         return true
     } else{

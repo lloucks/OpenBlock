@@ -46,7 +46,9 @@ func TestRPC(t *testing.T){
         log.Fatalf("Block was not valid, FAIL")
     }
 
-    if blockb.Header.Timestamp != node2.Chain[0].Header.Timestamp{
+    //time.Time stores location data so we should use Unix time to more closely
+    //test a distributed system.
+    if blockb.Header.Timestamp.Unix() != node2.Chain[0].Header.Timestamp.Unix(){
         log.Fatalf("Recieved block timestamp does not match the timestamp on node 2. FAIL")
     }
 

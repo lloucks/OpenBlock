@@ -39,7 +39,6 @@ func Cli_prompt() {
 			"list nodes":        network.List_nodes,
 			"next node":         network.Get_next,
 			"previous node":     network.Get_prev,
-			"foo":				 network.Nodes[*n_index].Foo,
 		}
 		fmt.Println("\nCurrent Node")
 		fmt.Println("-----------------------------------------------------")
