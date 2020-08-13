@@ -30,11 +30,11 @@ type Complete_block_reply struct {
 	Index int //requesting the block for this index
 	Peer  int //The peer that is trying to verify the block
 }
-func RequestLastBlock() RequestBlockReply{
-    reply:=RequestBlockReply{}
-    return reply
-}
 
+func RequestLastBlock() RequestBlockReply {
+	reply := RequestBlockReply{}
+	return reply
+}
 
 func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 
@@ -47,12 +47,14 @@ func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 	reply.Block = block
 
 	//we send an empty block for the other node to fill
-	for z, p := range n.PeerPorts{
-		fmt.Println(z)
-		fmt.Println(p)
-	}
-	fmt.Println("node-1 #:", n.Index)
-    n.Call(n.PeerPorts[peer], "Server.Send_block", &request, &reply)
+	/*
+		for z, p := range n.PeerPorts {
+			fmt.Println(z)
+			fmt.Println(p)
+		}
+	*/
+	fmt.Println("node#:", n.Index)
+	n.Call(n.PeerPorts[peer], "Server.Send_block", &request, &reply)
 
 	//other node fills out the block in reply, now we can verify it and add to chain
 	if pow.Verify_work(reply.Block.Header) {
