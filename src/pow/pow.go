@@ -77,8 +77,6 @@ func Verify_work(header structures.BlockHeader) bool{
         cmpstring = cmpstring + "0"
     }
 
-    fmt.Println("Verifying work ", cmpstring, " block: ", hashstr[:difficulty])
-
     if hashstr[:difficulty] == cmpstring{
         return true
     } else{
