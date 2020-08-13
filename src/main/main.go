@@ -34,7 +34,7 @@ func Cli_prompt() {
 			"list":              network.Nodes[*n_index].Print_chain,
 			"verify":            network.Nodes[*n_index].Verify_chain,
 			"post":              network.Nodes[*n_index].Create_transaction,
-			"show miner awards": network.Nodes[*n_index].Print_peer_completions,
+			"peer completions": network.Nodes[*n_index].Print_peer_completions,
 			"make node":         network.Add_new_node,
 			"list nodes":        network.List_nodes,
 			"next node":         network.Get_next,

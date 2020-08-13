@@ -7,7 +7,6 @@ package node
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"pow"
 	"strings"
@@ -82,7 +81,6 @@ func Make_node(i int) *Node {
 	node.Privkey = *privKey
 	node.Pubkey = privKey.PublicKey
 
-	fmt.Println("Made a client node")
 	//node.Server() //<-------------------This line makes the node live, and Serve as Server. Ther Server function is defined above. I
 	// Haven't tested it, but we might need to return a pointer. I may be wrong.
 	return &node
@@ -297,52 +295,6 @@ func (n *Node) Print_chain() {
 
 }
 
-//This function will give the option to display all posts in the chain
-//      Also displays author (public key) of the post
-//Verify the chain
-//Make a post
-//Node can be killed with ctrl-d
-func (n *Node) Cli_prompt() {
-
-	reader := bufio.NewReader(os.Stdin) //create a reader to parse input
-
-	options := map[string]func(){
-		"list":   n.Print_chain,
-		"verify": n.Verify_chain,
-		"post":   n.Create_transaction,
-	}
-
-	//n.Killed is just there in the case we want to kill it from other functions
-	for !n.Killed {
-		fmt.Println("Enter a command: (list, verify, post)")
-
-		command, err := reader.ReadString('\n')
-
-		if err == io.EOF {
-			n.Exit()
-			return
-		}
-		//Clear the newline from input
-		command = strings.Replace(command, "\n", "", -1)
-
-		fmt.Println()
-		//check if our command is valid
-		found := false
-		for k, v := range options {
-			if command == k {
-				found = true
-				v()
-				break
-			}
-		}
-		if !found {
-			fmt.Println("Invalid command, please try again.")
-			continue
-		}
-
-	}
-
-}
 
 func (n *Node) Print_peer_completions() {
 	for _, V := range n.Peer_completions {
