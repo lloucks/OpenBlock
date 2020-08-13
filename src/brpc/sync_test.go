@@ -104,7 +104,7 @@ func TestRPC2(t *testing.T) {
     //Wait to complete block.
     //Output from Broadcast_complete_block should output
     //which peer completed the block.
-    time.Sleep(time.Second * 1)
+    time.Sleep(time.Second * 3)
 
     if len(n.Nodes[0].Chain) != 2 {
         log.Fatalf("Block was not created")

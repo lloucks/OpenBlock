@@ -32,6 +32,7 @@ func Cli_prompt() {
 	for !n.Killed {
 		options := map[string]func(){
 			"list":              network.Nodes[*n_index].Print_chain,
+                        "show posts":        network.Nodes[*n_index].Print_posts,
 			"verify":            network.Nodes[*n_index].Verify_chain,
 			"post":              network.Nodes[*n_index].Create_transaction,
 			"peer completions": network.Nodes[*n_index].Print_peer_completions,
@@ -47,8 +48,8 @@ func Cli_prompt() {
 			sha256.Sum256((network.Nodes[*n_index].Privkey.D.Bytes())))
 		fmt.Println("-----------------------------------------------------")
 		fmt.Println("")
-		fmt.Println("Enter a node command: (list, verify, post, show miner awards)")
-		fmt.Println("or an RPC command: (make node, list nodes, next node, previous node)")
+		fmt.Println("Enter a node command: (list, show posts, verify, post, peer completions)")
+		fmt.Println("or a network command: (make node, list nodes, next node, previous node)")
 
 		command, err := reader.ReadString('\n')
 

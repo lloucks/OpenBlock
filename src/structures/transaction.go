@@ -37,6 +37,8 @@ func SignTransaction_withoutFile(transaction *Transaction, privKey *rsa.PrivateK
 //returns a signature, which is the signed serialization of the transaction
 func SignTransaction(transaction *Transaction) []byte {
 	privKey, pubKey := keys.GetKeys()
+        fmt.Println(pubKey)
+        fmt.Println(privKey)
 	transaction.publicKey = *pubKey
 
 	transactionBytes := transaction.Serialize()

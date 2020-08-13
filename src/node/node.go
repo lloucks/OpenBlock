@@ -246,7 +246,9 @@ func (n *Node) Create_transaction() {
 	input = strings.Replace(input, "\n", "", -1)
 
 	t := structures.CreateTransaction(input, authorID)
-	t.Signature = structures.SignTransaction(t)
+        privKey := n.Privkey
+        t.Signature = structures.SignTransaction_withoutFile(t, &privKey)
+	//t.Signature = structures.SignTransaction(t)
 	if n.Cur_block.MTree == nil {
 		var transactions []structures.Transaction
 		transactions = append(transactions, *t)
@@ -281,7 +283,7 @@ func (n *Node) Print_chain() {
 		//find a way to get transactions in order from the merkle tree
 		if block.MTree == nil {
 			fmt.Println("No Transactions In Block Yet")
-			return
+			continue
 		}
 		for _, l := range block.MTree.Leafs {
 			totalTrans += 1
@@ -292,6 +294,28 @@ func (n *Node) Print_chain() {
 	}
 
 	fmt.Printf("Number of Transactions %d\n", totalTrans)
+
+}
+
+func (n *Node) Print_posts() {
+        fmt.Println("--------------------------------------------------------------------------------")
+	totalTrans := 0
+	for _, block := range n.Chain {
+		//find a way to get transactions in order from the merkle tree
+		if block.MTree == nil {
+			fmt.Println("No Transactions In Block Yet")
+			continue
+		}
+		for _, l := range block.MTree.Leafs {
+			totalTrans += 1
+			trans := structures.Deserialize(l.HashedData)
+			fmt.Println(trans)
+		}
+		fmt.Println()
+	}
+
+	fmt.Printf("Number of Transactions %d\n", totalTrans)
+        fmt.Println("--------------------------------------------------------------------------------")
 
 }
 
