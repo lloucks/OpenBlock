@@ -1,11 +1,18 @@
 package brpc
 
 import (
-	"fmt"
-	"log"
-        "time"
+    "log"
+    "time"
+    "fmt"
 	"testing"
 )
+
+func TestServe(t *testing.T){
+    Service("one", ":2001")
+    Service("two", ":2002")
+    Call(":2001", "Server.Name")
+    Call(":2002", "Server.Name")
+}
 
 func TestRPC(t *testing.T){
 
@@ -30,7 +37,7 @@ func TestRPC(t *testing.T){
     fmt.Println(node2.Chain[0].To_string())
 
     fmt.Println("Node 1 requesting genesis block from node 2")
-    valid, blockb := node1.Request_block(0, 0)
+    valid, blockb := node1.Request_block(0, 1)
 
     fmt.Println("Recieved block:")
     fmt.Printf(blockb.To_string())
@@ -46,3 +53,4 @@ func TestRPC(t *testing.T){
 
 
 }
+

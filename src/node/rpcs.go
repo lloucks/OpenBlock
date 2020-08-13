@@ -42,10 +42,14 @@ func (n *Node) Request_block(index int, peer int) (bool, structures.Block) {
 	reply.Block = block
 
 	//we send an empty block for the other node to fill
-        n.Call(n.PeerSocks[peer], "Node.Send_block", &request, &reply)
+	for z, p := range n.PeerSocks{
+		fmt.Println(z)
+		fmt.Println(p)
+	}
+	fmt.Println("node-1 #:", n.Index)
+    n.Call(n.PeerSocks[peer], "Server.Send_block", &request, &reply)
 
 	//other node fills out the block in reply, now we can verify it and add to chain
-
 	if pow.Verify_work(reply.Block.Header) {
 		fmt.Println("Requested block was verified succesfully!")
 		return true, reply.Block
@@ -70,21 +74,7 @@ func (n *Node) Foo_reply(arg *Block_request, reply *Block_request_reply){
 	fmt.Println("I have recieved the RPC.")
 }
 
-func (n *Node) Send_block(arg *Block_request, reply *Block_request_reply) error {
 
-	fmt.Println("Got a block request for index: ", arg.Index)
-
-	if len(n.Chain) >= arg.Index {
-		fmt.Println("I have this block, sending....")
-		reply.Block = n.Chain[arg.Index]
-
-	} else {
-		fmt.Println("I don't have this block. Returning an empty block instead")
-		reply.Block = structures.Block{} //should be invalid when verified
-	}
-
-        return nil
-}
 
 /*
    This function simulates broadcasting a block for ever peer to try to mine first.

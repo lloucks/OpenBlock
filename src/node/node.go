@@ -18,11 +18,9 @@ import (
 	"crypto/rsa"
 	"keys"
 	"log"
+
   "net/rpc"
-  "net"
-  "net/http"
-  "strconv"
-  "math/rand"
+
 )
 
 
@@ -42,8 +40,11 @@ type Node struct {
 
 	Peer_completions []*Completed
 	Index int
+	Name string
 	SockName string
 	PeerSocks []string
+	
+	
 }
 
 //Structs for RPC calls. Right now they only have block.
@@ -54,31 +55,11 @@ type RequestBlockArgs struct{
 type RequestBlockReply struct{
     Block structures.Block
 }
-//Functions and implementations for RPC calls.
-//Creation of socket.
-//We will need to change this at some point.
-func NodeSock() string {
-	d := rand.Intn(1)
-	s := "/var/tmp/blockchain-"
-	s += strconv.Itoa(os.Getuid())
-	s += strconv.Itoa(d)
-	return s
-}
 
-func (n *Node) Server() {
-	// rpc.Register(n)
-	// rpc.HandleHTTP()
-	//l, e := net.Listen("tcp", ":1234")
-	sockname := NodeSock()
-	os.Remove(sockname)
-	l, e := net.Listen("unix", sockname)
-	if e != nil {
-		log.Fatal("listen error:", e)
-	}
-	n.SockName = sockname
-	go http.Serve(l, nil)
-	
-}
+
+
+
+
 
 func RequestLastBlock() RequestBlockReply{
     reply:=RequestBlockReply{}
@@ -89,7 +70,7 @@ func RequestLastBlock() RequestBlockReply{
 //If we want to filter our results for the RPC calls.
 func (n *Node) Call(sockname string, rpcname string, args interface{}, reply interface{}) bool {
 	// c, err := rpc.DialHTTP("tcp", "127.0.0.1"+":1234")
-	c, err := rpc.DialHTTP("unix", sockname)
+	c, err := rpc.DialHTTP("tcp", sockname)
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}
@@ -116,7 +97,7 @@ func Make_node(i int) *Node {
 	node.Pubkey = *tmp_pubKey
 
 	fmt.Println("Made a client node")
-    node.Server() //<-------------------This line makes the node live, and serve as server. Ther server function is defined above. I 
+    //node.Server() //<-------------------This line makes the node live, and Serve as Server. Ther Server function is defined above. I 
                   // Haven't tested it, but we might need to return a pointer. I may be wrong.  
 	return &node
 }
@@ -408,6 +389,12 @@ func (n *Node) Test_Call(args *RequestBlockArgs, reply *RequestBlockReply) error
     
     fmt.Println("I am here")
     return nil
+}
+
+func (n *Node) Print_peer_completions() {
+	for _, V := range n.Peer_completions {
+		fmt.Printf("\n Peer %d completed the block %d \n", V.Peer, V.BlockIndex)
+	}
 }
 
 

@@ -7,7 +7,9 @@ import (
   "node"
   "time"
   "crypto/sha256"
-  "net/rpc"
+  "math/rand"
+  "strconv"
+
 )
 
 type brpc_net struct{
@@ -17,34 +19,53 @@ type brpc_net struct{
 }
 
 
-
-
 func (n *brpc_net) Get_next() {
-  if n.N_index+1 < len(n.Nodes) {
-    n.N_index += 1
-  }else {
-    n.N_index = 0
+    if n.N_index+1 < len(n.Nodes) {
+      n.N_index += 1
+    }else {
+      n.N_index = 0
+    }
   }
-}
-
-func (n *brpc_net) Get_prev() {
-  if len(n.Nodes) > 0 {
-    n.N_index -= 1
-  }else {
-    n.N_index = len(n.Nodes)-1
+  
+  func (n *brpc_net) Get_prev() {
+    if len(n.Nodes) > 0 {
+      n.N_index -= 1
+    }else {
+      n.N_index = len(n.Nodes)-1
+    }
   }
+  func RandStringRunes(n int) string {
+    var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    b := make([]rune, n)
+    for i := range b {
+        b[i] = letterRunes[rand.Intn(len(letterRunes))]
+    }
+    return string(b)
 }
 
-func (n *brpc_net) Add_new_node() *node.Node {
-	return n.Node_startup()
+  func (n *brpc_net) Add_new_node() {
+    nodeName := RandStringRunes(20)
+	  n.Node_startup(nodeName)
+  }
+
+
+func NodeSock() string {
+	d := rand.Intn(10)+2000
+	s := ":"
+	//s := "/var/tmp/blockchain-"
+	//s += strconv.Itoa(os.Getuid())
+	s += strconv.Itoa(d)
+	return s
 }
 
-func (n *brpc_net) Node_startup() *node.Node {
+func (n *brpc_net) Node_startup(nodeName string) *node.Node {
+
   fmt.Println("Launching Node")
   i := len(n.Nodes)
   node := node.Make_node(i)
-  rpc.Register(node)
-
+  node.SockName = NodeSock()
+  node.Name = nodeName
+  Serve(node.Name, node.SockName, node)
 
   node.Blocksize = 2
   node.Killed = false
@@ -59,7 +80,7 @@ func (n *brpc_net) Node_startup() *node.Node {
   n.Nodes = append(n.Nodes, node)
   n.SockNames = append(n.SockNames, node.SockName)
   for _, node_i := range n.Nodes{
-		node_i.PeerSocks = n.SockNames
+      node_i.PeerSocks = n.SockNames
   }
 
   return node
@@ -81,9 +102,10 @@ func (n *brpc_net) List_nodes() {
     fmt.Printf(result)
 }
 
+
+
 func Make_brpc_network() brpc_net{
 
-    rpc.HandleHTTP()
     network := brpc_net{}
 
     network.N_index = 0

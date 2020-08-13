@@ -2,11 +2,7 @@ package node
 
 import (
 	"fmt"
-	// "log"
-	// "../pow"
-	// "../structures"
 	"testing"
-	// "time"
     "net/rpc"
 )
 
@@ -20,11 +16,17 @@ func Test_Connection(t *testing.T){
 	
     node1 := Make_node(1)
     rpc.Register(node1)
-    node2 := Make_node(2)
-    rpc.Register(node2)
+	node2 := Make_node(2)
+	rpc.Register(node2)
+	pSocks := make([]string, 2)
+	pSocks[0] = node1.SockName
+	pSocks[1] = node2.SockName
+	node1.PeerSocks = pSocks
+	node2.PeerSocks = pSocks
     args := RequestBlockArgs{}
     reply := RequestBlockReply{}
-    node2.Call(node1.SockName, "Node.Test_Call", &args, &reply)
+	node2.Call(node1.SockName, "Node.Test_Call", &args, &reply)
+	node2.Request_block(0, 0)
     
     
 }
