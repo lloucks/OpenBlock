@@ -19,10 +19,8 @@ import (
 	"keys"
 	"log"
 
-  "net/rpc"
-
+	"net/rpc"
 )
-
 
 type Node struct {
 	//MTree     *structures.MerkleTree
@@ -39,29 +37,20 @@ type Node struct {
 	Killed bool //So the node knows to kill itself
 
 	Peer_completions []*Completed
-	Index int
-	Name string
-	PortNum string
-	PeerPorts []string
-	
-	
+	Index            int
+	Name             string
+	PortNum          string
+	PeerPorts        []string
 }
 
 //Structs for RPC calls. Right now they only have block.
-type RequestBlockArgs struct{
-    Block structures.Block
+type RequestBlockArgs struct {
+	Block structures.Block
 }
 
-type RequestBlockReply struct{
-    Block structures.Block
+type RequestBlockReply struct {
+	Block structures.Block
 }
-
-
-
-
-
-
-
 
 //We will need this function at some point.
 //If we want to filter our results for the RPC calls.
@@ -72,7 +61,7 @@ func (n *Node) Call(PortNum string, rpcname string, args interface{}, reply inte
 		log.Fatal("dialing:", err)
 	}
 	defer c.Close()
-    //fmt.Println(reply)
+	//fmt.Println(reply)
 	err = c.Call(rpcname, args, reply)
 	if err == nil {
 		return true
@@ -94,12 +83,10 @@ func Make_node(i int) *Node {
 	node.Pubkey = *tmp_pubKey
 
 	fmt.Println("Made a client node")
-    //node.Server() //<-------------------This line makes the node live, and Serve as Server. Ther Server function is defined above. I 
-                  // Haven't tested it, but we might need to return a pointer. I may be wrong.  
+	//node.Server() //<-------------------This line makes the node live, and Serve as Server. Ther Server function is defined above. I
+	// Haven't tested it, but we might need to return a pointer. I may be wrong.
 	return &node
 }
-
-
 
 //take the current block and try to solve it (done accepting transactions for now)
 func (n *Node) GetLastBlock() structures.Block {
@@ -215,8 +202,8 @@ func (n *Node) Run() {
 		//a new block. We wait until full as there is no monetary incentive for nodes to work on a block.
 		//All nodes on the chain are 'lazy', they only work on blocks when they need to.
 		if n.is_cur_block_full() {
-			valid, block :=  n.Broadcast_complete_block(n.Cur_block)
-			if valid{
+			valid, block := n.Broadcast_complete_block(n.Cur_block)
+			if valid {
 				n.Chain = append(n.Chain, block)
 				fmt.Println("Completed block ", block.Index+1)
 				n.Cur_block = n.MakeBlock()
@@ -240,7 +227,6 @@ func (n *Node) is_cur_block_full() bool {
 		return false
 	}
 }
-
 
 //A goroutine that will wait for user input, make a transaction and add it to the current block
 func (n *Node) Create_transaction() {
@@ -363,6 +349,3 @@ func (n *Node) Print_peer_completions() {
 		fmt.Printf("\n Peer %d completed the block %d \n", V.Peer, V.BlockIndex)
 	}
 }
-
-
-
