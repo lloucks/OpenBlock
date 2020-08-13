@@ -70,9 +70,6 @@ func (n *Node) Foo(){
 	}
 }
 
-func (n *Node) Foo_reply(arg *Block_request, reply *Block_request_reply){
-	fmt.Println("I have recieved the RPC.")
-}
 
 
 

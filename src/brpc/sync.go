@@ -43,14 +43,13 @@ func (n *brpc_net) Get_next() {
     return string(b)
 }
 
-  func (n *brpc_net) Add_new_node() {
-    nodeName := RandStringRunes(20)
-	  n.Node_startup(nodeName)
+  func (n *brpc_net) Add_new_node() { 
+	  n.Node_startup()
   }
 
 
 func NodeSock() string {
-	d := rand.Intn(10)+2000
+	d := rand.Intn(2000)+2000
 	s := ":"
 	//s := "/var/tmp/blockchain-"
 	//s += strconv.Itoa(os.Getuid())
@@ -58,8 +57,8 @@ func NodeSock() string {
 	return s
 }
 
-func (n *brpc_net) Node_startup(nodeName string) *node.Node {
-
+func (n *brpc_net) Node_startup() *node.Node {
+  nodeName := RandStringRunes(20)
   fmt.Println("Launching Node")
   i := len(n.Nodes)
   node := node.Make_node(i)
