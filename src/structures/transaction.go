@@ -22,7 +22,7 @@ type Transaction struct {
 	//int is just a placeholder for now
 
 	Signature []byte
-	publicKey  rsa.PublicKey
+	publicKey rsa.PublicKey
 	//need to send it somewhere
 }
 
@@ -37,8 +37,8 @@ func SignTransaction_withoutFile(transaction *Transaction, privKey *rsa.PrivateK
 //returns a signature, which is the signed serialization of the transaction
 func SignTransaction(transaction *Transaction) []byte {
 	privKey, pubKey := keys.GetKeys()
-        fmt.Println(pubKey)
-        fmt.Println(privKey)
+	fmt.Println(pubKey)
+	fmt.Println(privKey)
 	transaction.publicKey = *pubKey
 
 	transactionBytes := transaction.Serialize()
@@ -75,6 +75,12 @@ func CreateTransaction(text string, author int) *Transaction {
 	return &t
 }
 
+func (t Transaction) UpdateTransactionHash() *Transaction {
+	hash := t.Serialize()
+	t.ID = hash[:]
+	return &t
+}
+
 func (t Transaction) Serialize() []byte {
 	//don't want to serialize the signature
 	tmp_signature := t.Signature
@@ -99,13 +105,12 @@ func Deserialize(serialized []byte) *Transaction {
 	return &result
 }
 
-
 func (t *Transaction) To_string() string {
-    //Must be desirialized before calling this
-    var result string
+	//Must be desirialized before calling this
+	var result string
 
-    result += fmt.Sprintf("Author: %x\n", t.publicKey)
-    result += fmt.Sprintf("Post:\n      %v\n", t.Text)
+	result += fmt.Sprintf("Author: %x\n", t.publicKey)
+	result += fmt.Sprintf("Post:\n      %v\n", t.Text)
 
-    return result
+	return result
 }
