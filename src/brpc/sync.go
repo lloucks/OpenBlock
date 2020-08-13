@@ -34,7 +34,7 @@ func (n *brpc_net) Get_prev() {
       n.N_index = len(n.Nodes)-1
     }
   }
-  
+
 func RandStringRunes(n int) string {
     var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
     b := make([]rune, n)
@@ -85,7 +85,6 @@ func (n *brpc_net) Node_startup() *node.Node {
 
   return node
 }
-
 
 func (n *brpc_net) List_nodes() {
     var result string

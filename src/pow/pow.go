@@ -61,8 +61,6 @@ func GenerateHash(header structures.BlockHeader) [32]byte{
 
 }
 
-
-
 func Verify_work(header structures.BlockHeader) bool{
 
     hash := GenerateHash(header)

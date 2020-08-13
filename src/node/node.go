@@ -78,7 +78,7 @@ func Make_node(i int) *Node {
 
 	node.Block_time = 20 * time.Second
 	node.Cur_difficulty = 3
-	privKey := keys.GenerateKeys()
+	privKey := keys.GenerateKeys_toFile()
 	node.Privkey = *privKey
 	node.Pubkey = privKey.PublicKey
 
@@ -213,7 +213,6 @@ func (n *Node) Run() {
 		time.Sleep(time.Millisecond * 50)
 		//else we wait for user input to send transactions
 	}
-
 }
 
 func (n *Node) is_cur_block_full() bool {
@@ -226,41 +225,6 @@ func (n *Node) is_cur_block_full() bool {
 	} else {
 		return false
 	}
-}
-
-//A goroutine that will wait for user input, make a transaction and add it to the current block
-func (n *Node) Create_transaction() {
-	var input string
-	//fmt.Println("Enter author Number: ")
-	var authorID int
-	//_, err := fmt.Scanf("%d", &authorID)
-	//if err != nil {
-	//	log.Fatal("not valid author ID")
-	//}
-
-	authorID = 0 //temporary until we figure out how to remove this if not needed
-
-	fmt.Println("Enter text: ")
-	reader := bufio.NewReader(os.Stdin)
-	//fmt.Scanln(&input)
-	input, _ = reader.ReadString('\n')
-	// convert CRLF to LF
-	input = strings.Replace(input, "\n", "", -1)
-
-	t := structures.CreateTransaction(input, authorID)
-	t.Signature = structures.SignTransaction(t)
-	if n.Cur_block.MTree == nil {
-		var transactions []structures.Transaction
-		transactions = append(transactions, *t)
-		n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
-	} else {
-		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
-	}
-	n.Chain[len(n.Chain)-1] = n.Cur_block
-	//done <- true
-
-	fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
-	//fmt.Printf("Amount of leafs in Merkle Tree %v\n", len(n.Cur_block.MTree.Leafs))
 }
 
 //Clean up goes here
@@ -309,7 +273,7 @@ func (n *Node) Cli_prompt() {
 	options := map[string]func(){
 		"list":   n.Print_chain,
 		"verify": n.Verify_chain,
-		"post":   n.Create_transaction,
+		"post":   n.Create_transaction_from_input,
 	}
 
 	//n.Killed is just there in the case we want to kill it from other functions
@@ -350,11 +314,9 @@ func (n *Node) Print_peer_completions() {
 	}
 }
 
-//goroutine to create a transaction from a string instead
-//of taking user input.
-func (n *Node) Create_transaction_from_input(input string){
+func (n *Node) Create_transaction(input string){
 	t := structures.CreateTransaction(input, 0)
-	t.Signature = structures.SignTransaction_withoutFile(t, &n.Privkey)
+
 	if n.Cur_block.MTree == nil {
 		var transactions []structures.Transaction
 		transactions = append(transactions, *t)
@@ -363,4 +325,27 @@ func (n *Node) Create_transaction_from_input(input string){
 		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
 	}
 	n.Chain[len(n.Chain)-1] = n.Cur_block
+}
+
+//A goroutine that will wait for user input, make a transaction and add it to the current block
+func (n *Node) Create_transaction_from_input() {
+	var input string
+	//fmt.Println("Enter author Number: ")
+	//var authorID int
+	// _, err := fmt.Scanf("%d", &authorID)
+	// if err != nil {
+	// 	log.Fatal("not valid author ID")
+	// }
+
+	fmt.Println("Enter text: ")
+	reader := bufio.NewReader(os.Stdin)
+	//fmt.Scanln(&input)
+	input, _ = reader.ReadString('\n')
+	// convert CRLF to LF
+	input = strings.Replace(input, "\n", "", -1)
+
+	n.Create_transaction(input)
+
+	fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
+	//fmt.Printf("Amount of leafs in Merkle Tree %v\n", len(n.Cur_block.MTree.Leafs))
 }

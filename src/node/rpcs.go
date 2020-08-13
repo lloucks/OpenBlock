@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"pow"
 	"structures"
+	"log"
 )
 
 type Completed struct {
@@ -96,6 +97,21 @@ func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structure
 	for i := 0; i < len(n.PeerPorts); i++ {
 		go func(i int) {
 			reply := Complete_block_reply{}
+			//For each leaf in the merkle tree, need to verify it.
+			for _, l := range block.MTree.Leafs{
+				t := structures.Deserialize(l.HashedData)
+
+				if len(t.Signature) == 0 {
+					log.Fatalf("Error, transaction does not contain a signature.")
+				}
+
+				err := structures.VerifyTransaction(t)
+
+				if err != nil{
+					fmt.Println(err)
+					log.Fatalf("ERROR verifying transaction")
+				}
+			}
 			reply.Peer = i
 			block := pow.Complete_block(block)
 			reply.Block = block

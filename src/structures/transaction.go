@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"keys"
 	"log"
+	"errors"
 )
 
 //Given that we are not using currency, the transaction strucutre is flexible.
@@ -20,6 +21,7 @@ type Transaction struct {
 	Text   string //contents of the post
 	Author int    //Will be the authors signature, that other nodes should be able to verify
 	//int is just a placeholder for now
+	Data []byte
 
 	Signature []byte
 	publicKey  rsa.PublicKey
@@ -39,50 +41,55 @@ func SignTransaction(transaction *Transaction) []byte {
 	privKey, pubKey := keys.GetKeys()
 	transaction.publicKey = *pubKey
 
-	transactionBytes := transaction.Serialize()
-	hashed := sha256.Sum256(transactionBytes)
+	//transactionBytes := transaction.Serialize()
+	hashed := sha256.Sum256(transaction.Data)
 	signature, _ := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, hashed[:])
-
 	return signature
 }
 
-func VerifyTransaction_withoutFile(transaction *Transaction, signature []byte, privKey *rsa.PrivateKey) error {
+func VerifyTransaction_withoutFile(transaction *Transaction) error {
+	if transaction.publicKey.N == nil {
+		return errors.New("Public key is empty.")
+	}
 	hashed := sha256.Sum256(transaction.Serialize())
-	err := rsa.VerifyPKCS1v15(&transaction.publicKey, crypto.SHA256, hashed[:], signature)
+	err := rsa.VerifyPKCS1v15(&transaction.publicKey, crypto.SHA256, hashed[:], transaction.Signature)
+
 	return err
 }
 
 //verifies a transaction given the signature
-func VerifyTransaction(transaction *Transaction, signature []byte) error {
+func VerifyTransaction(transaction *Transaction) error {
 	//replace with RPC call when distributed.
 	_, pubKey := keys.GetKeys()
-	transaction.publicKey = *pubKey
 
-	hashed := sha256.Sum256(transaction.Serialize())
-	err := rsa.VerifyPKCS1v15(&transaction.publicKey, crypto.SHA256, hashed[:], signature)
-
+	hashed := sha256.Sum256(transaction.Data)
+	err := rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, hashed[:], transaction.Signature)
 	return err
 }
+
+func (t Transaction) UpdateTransactionHash() *Transaction {
+ 	hash := t.Serialize()
+ 	t.ID = hash[:]
+ 	return &t
+ }
 
 func CreateTransaction(text string, author int) *Transaction {
 	t := Transaction{}
 	t.Text = text
 	t.Author = author
+	t.Data = t.Serialize()
+	t.Signature = SignTransaction(&t)
 	hash := t.Serialize()
 	t.ID = hash[:]
 	return &t
 }
 
 func (t Transaction) Serialize() []byte {
-	//don't want to serialize the signature
-	tmp_signature := t.Signature
-	t.Signature = nil
 	buf := &bytes.Buffer{}
 	if err := gob.NewEncoder(buf).Encode(t); err != nil {
 		log.Panic(err)
 		return nil
 	}
-	t.Signature = tmp_signature
 	return buf.Bytes()
 }
 
@@ -96,7 +103,6 @@ func Deserialize(serialized []byte) *Transaction {
 	}
 	return &result
 }
-
 
 func (t *Transaction) to_string() string {
     //Do I need to deserialize first???

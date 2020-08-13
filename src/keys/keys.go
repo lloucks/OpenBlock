@@ -19,7 +19,7 @@ func GenerateKeys() *rsa.PrivateKey{
 
 //Generate keys using PKCS#1 ASN.1 specifications
 // and write to local file.
-func GenerateKeys_toFile(){
+func GenerateKeys_toFile() (*rsa.PrivateKey){
 	Priv, err := rsa.GenerateKey(rand.Reader, 4096)
 
 	if err != nil {
@@ -33,6 +33,7 @@ func GenerateKeys_toFile(){
 	})
 
 	//WriteFile(filename string, data []byte, perm os.FileMode)
+
 	ioutil.WriteFile("key.pub", pubBytes, 0644)
 
 	privBytes := pem.EncodeToMemory( &pem.Block{
@@ -40,7 +41,10 @@ func GenerateKeys_toFile(){
 	    Bytes: x509.MarshalPKCS1PrivateKey(Priv),
 	})
 
+
 	ioutil.WriteFile("key.priv", privBytes, 0644)
+
+	return Priv
 }
 
 //Will either return keys found from local storage,

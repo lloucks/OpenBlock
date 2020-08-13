@@ -105,8 +105,8 @@ func TestRPC2(t *testing.T) {
     n.List_nodes()
 
     //Add two transactions to complete block.
-    n.Nodes[0].Create_transaction_from_input("This is my transaction.")
-    n.Nodes[0].Create_transaction_from_input("This is my second transaction.")
+    n.Nodes[0].Create_transaction("This is my transaction.")
+    n.Nodes[0].Create_transaction("This is my second transaction.")
 
     //Wait to complete block.
     //Output from Broadcast_complete_block should output
