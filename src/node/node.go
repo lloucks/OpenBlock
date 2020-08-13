@@ -18,12 +18,8 @@ import (
 	"crypto/rsa"
 	"keys"
 	"log"
-<<<<<<< HEAD
- 	"net/rpc"
-=======
 
 	"net/rpc"
->>>>>>> fac350b9f0994521ad7c30478d5e13b13322f870
 )
 
 type Node struct {
@@ -41,17 +37,10 @@ type Node struct {
 	Killed bool //So the node knows to kill itself
 
 	Peer_completions []*Completed
-<<<<<<< HEAD
 	Index int
 	Name string
 	PortNum string
 	PeerPorts []string
-=======
-	Index            int
-	Name             string
-	PortNum          string
-	PeerPorts        []string
->>>>>>> fac350b9f0994521ad7c30478d5e13b13322f870
 }
 
 //Structs for RPC calls. Right now they only have block.
@@ -239,24 +228,6 @@ func (n *Node) is_cur_block_full() bool {
 	}
 }
 
-<<<<<<< HEAD
-//goroutine to create a transaction from a string instead
-//of taking user input.
-func (n *Node) Create_transaction_from_input(input string){
-	t := structures.CreateTransaction(input, 0)
-	t.Signature = structures.SignTransaction_withoutFile(t, n.Privkey)
-	if n.Cur_block.MTree == nil {
-		var transactions []structures.Transaction
-		transactions = append(transactions, *t)
-		n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
-	} else {
-		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
-	}
-	n.Chain[len(n.Chain)-1] = n.Cur_block
-}
-
-=======
->>>>>>> fac350b9f0994521ad7c30478d5e13b13322f870
 //A goroutine that will wait for user input, make a transaction and add it to the current block
 func (n *Node) Create_transaction() {
 	var input string
@@ -377,4 +348,19 @@ func (n *Node) Print_peer_completions() {
 	for _, V := range n.Peer_completions {
 		fmt.Printf("\n Peer %d completed the block %d \n", V.Peer, V.BlockIndex)
 	}
+}
+
+//goroutine to create a transaction from a string instead
+//of taking user input.
+func (n *Node) Create_transaction_from_input(input string){
+	t := structures.CreateTransaction(input, 0)
+	t.Signature = structures.SignTransaction_withoutFile(t, &n.Privkey)
+	if n.Cur_block.MTree == nil {
+		var transactions []structures.Transaction
+		transactions = append(transactions, *t)
+		n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
+	} else {
+		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
+	}
+	n.Chain[len(n.Chain)-1] = n.Cur_block
 }
