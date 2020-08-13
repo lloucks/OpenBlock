@@ -18,9 +18,7 @@ import (
 	"crypto/rsa"
 	"keys"
 	"log"
-
-  "net/rpc"
-
+ 	"net/rpc"
 )
 
 
@@ -43,8 +41,6 @@ type Node struct {
 	Name string
 	PortNum string
 	PeerPorts []string
-	
-	
 }
 
 //Structs for RPC calls. Right now they only have block.
@@ -55,13 +51,6 @@ type RequestBlockArgs struct{
 type RequestBlockReply struct{
     Block structures.Block
 }
-
-
-
-
-
-
-
 
 //We will need this function at some point.
 //If we want to filter our results for the RPC calls.
@@ -89,17 +78,15 @@ func Make_node(i int) *Node {
 
 	node.Block_time = 20 * time.Second
 	node.Cur_difficulty = 3
-	tmp_privKey, tmp_pubKey := keys.GetKeys()
-	node.Privkey = *tmp_privKey
-	node.Pubkey = *tmp_pubKey
+	privKey := keys.GenerateKeys()
+	node.Privkey = *privKey
+	node.Pubkey = privKey.PublicKey
 
 	fmt.Println("Made a client node")
     //node.Server() //<-------------------This line makes the node live, and Serve as Server. Ther Server function is defined above. I 
                   // Haven't tested it, but we might need to return a pointer. I may be wrong.  
 	return &node
 }
-
-
 
 //take the current block and try to solve it (done accepting transactions for now)
 func (n *Node) GetLastBlock() structures.Block {
@@ -241,6 +228,20 @@ func (n *Node) is_cur_block_full() bool {
 	}
 }
 
+//goroutine to create a transaction from a string instead
+//of taking user input.
+func (n *Node) Create_transaction_from_input(input string){
+	t := structures.CreateTransaction(input, 0)
+	t.Signature = structures.SignTransaction_withoutFile(t, n.Privkey)
+	if n.Cur_block.MTree == nil {
+		var transactions []structures.Transaction
+		transactions = append(transactions, *t)
+		n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
+	} else {
+		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
+	}
+	n.Chain[len(n.Chain)-1] = n.Cur_block
+}
 
 //A goroutine that will wait for user input, make a transaction and add it to the current block
 func (n *Node) Create_transaction() {

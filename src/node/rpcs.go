@@ -107,6 +107,7 @@ func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structure
 			V.Peer = completed.Peer
 			V.BlockIndex = block.Index
 			n.Peer_completions = append(n.Peer_completions, V)
+			go fmt.Println("Peer ", V.Peer, " completed the block.")
 			return true, completed.Block
 		}
 	}

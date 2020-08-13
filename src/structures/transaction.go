@@ -13,9 +13,7 @@ import (
 )
 
 //Given that we are not using currency, the transaction strucutre is flexible.
-
 //We can make it so that we have some designated address that all posts are sent to
-
 //Please add to this structure when required to make a part work
 type Transaction struct {
 	ID     []byte
@@ -28,6 +26,14 @@ type Transaction struct {
 	//need to send it somewhere
 }
 
+func SignTransaction_withoutFile(transaction *Transaction, privKey *rsa.PrivateKey) []byte {
+	transactionBytes := transaction.Serialize()
+	hashed := sha256.Sum256(transactionBytes)
+	signature, _ := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, hashed[:])
+
+	return signature
+}
+
 //returns a signature, which is the signed serialization of the transaction
 func SignTransaction(transaction *Transaction) []byte {
 	privKey, pubKey := keys.GetKeys()
@@ -38,6 +44,12 @@ func SignTransaction(transaction *Transaction) []byte {
 	signature, _ := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, hashed[:])
 
 	return signature
+}
+
+func VerifyTransaction_withoutFile(transaction *Transaction, signature []byte, privKey *rsa.PrivateKey) error {
+	hashed := sha256.Sum256(transaction.Serialize())
+	err := rsa.VerifyPKCS1v15(&transaction.publicKey, crypto.SHA256, hashed[:], signature)
+	return err
 }
 
 //verifies a transaction given the signature

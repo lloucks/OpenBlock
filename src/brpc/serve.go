@@ -134,12 +134,6 @@ func (s *Server) Send_block(arg *Block_request, reply *Block_request_reply) erro
     return nil
 }
 
-func (s *Server) Foo_reply(arg *Block_request, reply *Block_request_reply) error {
-	fmt.Println("I have recieved the RPC.")
-	return nil
-}
-
-
 
 
 

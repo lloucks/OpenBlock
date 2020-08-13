@@ -8,9 +8,18 @@ import "encoding/pem"
 import "log"
 import "errors"
 
+func GenerateKeys() *rsa.PrivateKey{
+	//Use this if we don't want to putput the keys to a file.
+	Priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil{
+		log.Fatal("Failed to generate key pair.")
+	}
+	return Priv
+}
+
 //Generate keys using PKCS#1 ASN.1 specifications
 // and write to local file.
-func GenerateKeys(){
+func GenerateKeys_toFile(){
 	Priv, err := rsa.GenerateKey(rand.Reader, 4096)
 
 	if err != nil {
