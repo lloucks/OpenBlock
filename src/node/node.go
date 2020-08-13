@@ -215,10 +215,12 @@ func (n *Node) Run() {
 		//a new block. We wait until full as there is no monetary incentive for nodes to work on a block.
 		//All nodes on the chain are 'lazy', they only work on blocks when they need to.
 		if n.is_cur_block_full() {
-			n.Cur_block = pow.Complete_block(n.Cur_block)
-			n.Chain = append(n.Chain, n.Cur_block)
-			fmt.Println("Completed block ", n.Cur_block.Index+1)
-			n.Cur_block = n.MakeBlock()
+			valid, block :=  n.Broadcast_complete_block(n.Cur_block)
+			if valid{
+				n.Chain = append(n.Chain, block)
+				fmt.Println("Completed block ", block.Index+1)
+				n.Cur_block = n.MakeBlock()
+			}
 		}
 
 		time.Sleep(time.Millisecond * 50)
