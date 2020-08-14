@@ -37,10 +37,10 @@ type Node struct {
 	Killed bool //So the node knows to kill itself
 
 	Peer_completions []*Completed
-	Index int
-	Name string
-	PortNum string
-	PeerPorts []string
+	Index            int
+	Name             string
+	PortNum          string
+	PeerPorts        []string
 }
 
 //Structs for RPC calls. Right now they only have block.
@@ -314,7 +314,7 @@ func (n *Node) Print_peer_completions() {
 	}
 }
 
-func (n *Node) Create_transaction(input string){
+func (n *Node) Create_transaction(input string) {
 	t := structures.CreateTransaction(input, 0)
 
 	if n.Cur_block.MTree == nil {

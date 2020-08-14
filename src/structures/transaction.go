@@ -7,10 +7,10 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"keys"
 	"log"
-	"errors"
 )
 
 //Given that we are not using currency, the transaction strucutre is flexible.
@@ -24,7 +24,7 @@ type Transaction struct {
 	Data []byte
 
 	Signature []byte
-	publicKey  rsa.PublicKey
+	PubKey    rsa.PublicKey
 	//need to send it somewhere
 }
 
@@ -39,7 +39,7 @@ func SignTransaction_withoutFile(transaction *Transaction, privKey *rsa.PrivateK
 //returns a signature, which is the signed serialization of the transaction
 func SignTransaction(transaction *Transaction) []byte {
 	privKey, pubKey := keys.GetKeys()
-	transaction.publicKey = *pubKey
+	transaction.PubKey = *pubKey
 
 	//transactionBytes := transaction.Serialize()
 	hashed := sha256.Sum256(transaction.Data)
@@ -48,11 +48,11 @@ func SignTransaction(transaction *Transaction) []byte {
 }
 
 func VerifyTransaction_withoutFile(transaction *Transaction) error {
-	if transaction.publicKey.N == nil {
+	if transaction.PubKey.N == nil {
 		return errors.New("Public key is empty.")
 	}
 	hashed := sha256.Sum256(transaction.Serialize())
-	err := rsa.VerifyPKCS1v15(&transaction.publicKey, crypto.SHA256, hashed[:], transaction.Signature)
+	err := rsa.VerifyPKCS1v15(&transaction.PubKey, crypto.SHA256, hashed[:], transaction.Signature)
 
 	return err
 }
@@ -68,10 +68,10 @@ func VerifyTransaction(transaction *Transaction) error {
 }
 
 func (t Transaction) UpdateTransactionHash() *Transaction {
- 	hash := t.Serialize()
- 	t.ID = hash[:]
- 	return &t
- }
+	hash := t.Serialize()
+	t.ID = hash[:]
+	return &t
+}
 
 func CreateTransaction(text string, author int) *Transaction {
 	t := Transaction{}
@@ -105,11 +105,11 @@ func Deserialize(serialized []byte) *Transaction {
 }
 
 func (t *Transaction) to_string() string {
-    //Do I need to deserialize first???
-    var result string
+	//Do I need to deserialize first???
+	var result string
 
-    result += fmt.Sprintf("Author: %v\n", t.publicKey)
-    result += fmt.Sprintf("Post:\n      %v\n", t.publicKey)
+	result += fmt.Sprintf("Author: %v\n", t.PubKey)
+	result += fmt.Sprintf("Post:\n      %v\n", t.PubKey)
 
-    return result
+	return result
 }
