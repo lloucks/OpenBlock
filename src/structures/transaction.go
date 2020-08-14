@@ -51,7 +51,7 @@ func VerifyTransaction_withoutFile(transaction *Transaction) error {
 	if transaction.PubKey.N == nil {
 		return errors.New("Public key is empty.")
 	}
-	hashed := sha256.Sum256(transaction.Serialize())
+	hashed := sha256.Sum256(transaction.Data)
 	err := rsa.VerifyPKCS1v15(&transaction.PubKey, crypto.SHA256, hashed[:], transaction.Signature)
 
 	return err
@@ -73,12 +73,13 @@ func (t Transaction) UpdateTransactionHash() *Transaction {
 	return &t
 }
 
-func CreateTransaction(text string, author int) *Transaction {
+func CreateTransaction(text string, author int, privKey rsa.PrivateKey) *Transaction {
 	t := Transaction{}
 	t.Text = text
 	t.Author = author
 	t.Data = t.Serialize()
 	t.Signature = SignTransaction(&t)
+	t.PubKey = privKey.PublicKey
 	hash := t.Serialize()
 	t.ID = hash[:]
 	return &t

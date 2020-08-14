@@ -104,7 +104,6 @@ func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structure
 				if len(t.Signature) == 0 {
 					log.Fatalf("Error, transaction does not contain a signature.")
 				}
-
 				err := structures.VerifyTransaction(t)
 
 				if err != nil{

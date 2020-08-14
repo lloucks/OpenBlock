@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"structures"
 )
-
 // RPC Server
 type Server struct {
 	Node    *node.Node

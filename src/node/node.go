@@ -78,7 +78,7 @@ func Make_node(i int) *Node {
 
 	node.Block_time = 20 * time.Second
 	node.Cur_difficulty = 3
-	privKey := keys.GenerateKeys_toFile()
+	privKey := keys.GenerateKeys()
 	node.Privkey = *privKey
 	node.Pubkey = privKey.PublicKey
 
@@ -315,8 +315,7 @@ func (n *Node) Print_peer_completions() {
 }
 
 func (n *Node) Create_transaction(input string) {
-	t := structures.CreateTransaction(input, 0)
-
+	t := structures.CreateTransaction(input, 0, n.Privkey)
 	if n.Cur_block.MTree == nil {
 		var transactions []structures.Transaction
 		transactions = append(transactions, *t)
