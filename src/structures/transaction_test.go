@@ -1,10 +1,6 @@
 package structures
 
-import (
-	"testing"
-	"log"
-)
-
+/*
 func Test_and_sign_transaction(t *testing.T){
 	text := "Sample transaction"
 	transaction := CreateTransaction(text, 0)
@@ -35,4 +31,4 @@ func Test_invalid_transaction(t *testing.T){
 		log.Fatal("Invalid transaction was verified.")
 	}
 }
-
+*/

@@ -31,8 +31,8 @@ type Complete_block_reply struct {
 	Peer  int //The peer that is trying to verify the block
 }
 
-func RequestLastBlock() RequestBlockReply {
-	reply := RequestBlockReply{}
+func RequestLastBlock() Block_request_reply {
+	reply := Block_request_reply{}
 	return reply
 }
 

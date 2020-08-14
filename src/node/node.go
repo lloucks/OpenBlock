@@ -17,7 +17,6 @@ import (
 	"crypto/rsa"
 	"keys"
 	"log"
-
 	"net/rpc"
 )
 
@@ -36,19 +35,10 @@ type Node struct {
 	Killed bool //So the node knows to kill itself
 
 	Peer_completions []*Completed
-	Index int
-	Name string
-	PortNum string
-	PeerPorts []string
-}
-
-//Structs for RPC calls. Right now they only have block.
-type RequestBlockArgs struct {
-	Block structures.Block
-}
-
-type RequestBlockReply struct {
-	Block structures.Block
+	Index            int
+	Name             string
+	PortNum          string
+	PeerPorts        []string
 }
 
 //We will need this function at some point.
@@ -246,8 +236,8 @@ func (n *Node) Create_transaction() {
 	input = strings.Replace(input, "\n", "", -1)
 
 	t := structures.CreateTransaction(input, authorID)
-        privKey := n.Privkey
-        t.Signature = structures.SignTransaction_withoutFile(t, &privKey)
+	privKey := n.Privkey
+	t.Signature = structures.SignTransaction_withoutFile(t, &privKey)
 	//t.Signature = structures.SignTransaction(t)
 	if n.Cur_block.MTree == nil {
 		var transactions []structures.Transaction
@@ -298,7 +288,7 @@ func (n *Node) Print_chain() {
 }
 
 func (n *Node) Print_posts() {
-        fmt.Println("--------------------------------------------------------------------------------")
+	fmt.Println("--------------------------------------------------------------------------------")
 	totalTrans := 0
 	for _, block := range n.Chain {
 		//find a way to get transactions in order from the merkle tree
@@ -315,10 +305,9 @@ func (n *Node) Print_posts() {
 	}
 
 	fmt.Printf("Number of Transactions %d\n", totalTrans)
-        fmt.Println("--------------------------------------------------------------------------------")
+	fmt.Println("--------------------------------------------------------------------------------")
 
 }
-
 
 func (n *Node) Print_peer_completions() {
 	for _, V := range n.Peer_completions {
@@ -328,7 +317,7 @@ func (n *Node) Print_peer_completions() {
 
 //goroutine to create a transaction from a string instead
 //of taking user input.
-func (n *Node) Create_transaction_from_input(input string){
+func (n *Node) Create_transaction_from_input(input string) {
 	t := structures.CreateTransaction(input, 0)
 	t.Signature = structures.SignTransaction_withoutFile(t, &n.Privkey)
 	if n.Cur_block.MTree == nil {

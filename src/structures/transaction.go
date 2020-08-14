@@ -22,7 +22,7 @@ type Transaction struct {
 	//int is just a placeholder for now
 
 	Signature []byte
-	publicKey  rsa.PublicKey
+	PubKey    rsa.PublicKey
 	//need to send it somewhere
 }
 
@@ -37,9 +37,9 @@ func SignTransaction_withoutFile(transaction *Transaction, privKey *rsa.PrivateK
 //returns a signature, which is the signed serialization of the transaction
 func SignTransaction(transaction *Transaction) []byte {
 	privKey, pubKey := keys.GetKeys()
-        fmt.Println(pubKey)
-        fmt.Println(privKey)
-	transaction.publicKey = *pubKey
+	fmt.Println(pubKey)
+	fmt.Println(privKey)
+	transaction.PubKey = *pubKey
 
 	transactionBytes := transaction.Serialize()
 	hashed := sha256.Sum256(transactionBytes)
@@ -50,7 +50,7 @@ func SignTransaction(transaction *Transaction) []byte {
 
 func VerifyTransaction_withoutFile(transaction *Transaction, signature []byte, privKey *rsa.PrivateKey) error {
 	hashed := sha256.Sum256(transaction.Serialize())
-	err := rsa.VerifyPKCS1v15(&transaction.publicKey, crypto.SHA256, hashed[:], signature)
+	err := rsa.VerifyPKCS1v15(&transaction.PubKey, crypto.SHA256, hashed[:], signature)
 	return err
 }
 
@@ -58,10 +58,10 @@ func VerifyTransaction_withoutFile(transaction *Transaction, signature []byte, p
 func VerifyTransaction(transaction *Transaction, signature []byte) error {
 	//replace with RPC call when distributed.
 	_, pubKey := keys.GetKeys()
-	transaction.publicKey = *pubKey
+	transaction.PubKey = *pubKey
 
 	hashed := sha256.Sum256(transaction.Serialize())
-	err := rsa.VerifyPKCS1v15(&transaction.publicKey, crypto.SHA256, hashed[:], signature)
+	err := rsa.VerifyPKCS1v15(&transaction.PubKey, crypto.SHA256, hashed[:], signature)
 
 	return err
 }
@@ -99,13 +99,12 @@ func Deserialize(serialized []byte) *Transaction {
 	return &result
 }
 
-
 func (t *Transaction) To_string() string {
-    //Must be desirialized before calling this
-    var result string
+	//Must be desirialized before calling this
+	var result string
 
-    result += fmt.Sprintf("Author: %x\n", t.publicKey)
-    result += fmt.Sprintf("Post:\n      %v\n", t.Text)
+	result += fmt.Sprintf("Author: %x\n", t.PubKey)
+	result += fmt.Sprintf("Post:\n      %v\n", t.Text)
 
-    return result
+	return result
 }
