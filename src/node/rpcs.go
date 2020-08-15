@@ -85,13 +85,33 @@ func (n *Node) Recieve_block(block structures.Block) {
 
 }
 
+func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structures.Block) {
+	valid, new_block := n.Race_complete_block(block)
+	if !valid {
+		fmt.Println("ERROR: race to complete block failed")
+		return valid, new_block
+	}
+	for i, _ := range n.PeerPorts {
+		if i != n.Index {
+			request := Complete_block_request{}
+			request.Block = new_block
+			reply := Complete_block_reply{}
+			ok := n.Call(n.PeerPorts[i], "Server.Download_block", &request, &reply)
+			if !ok {
+				fmt.Println("Failed to replicate block to peer#", i)
+			}
+		}
+	}
+	return valid, new_block
+}
+
 /*
    This function simulates broadcasting a block for ever peer to try to mine first.
    The peers race to complete the block. The first peer to complete the block, and gets it verified by the block's owner, wins the race.
    The function will return after the first peer to mine the block, so the other Go threads trying to mine the block will stop.
    The peer who mines the block is recorded, so they can have a reward of some type at a later point.
 */
-func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structures.Block) {
+func (n *Node) Race_complete_block(block structures.Block) (bool, structures.Block) {
 	c := make(chan Complete_block_reply)
 	for i := 0; i < len(n.PeerPorts); i++ {
 		go func(i int) {

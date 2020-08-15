@@ -31,19 +31,19 @@ func Cli_prompt() {
 	//n.Killed is just there in the case we want to kill it from other functions
 	for !n.Killed {
 		options := map[string]func(){
-			"list":              network.Nodes[*n_index].Print_chain,
-                        "show posts":        network.Nodes[*n_index].Print_posts,
-			"verify":            network.Nodes[*n_index].Verify_chain,
-			"post":              network.Nodes[*n_index].Create_transaction,
+			"list":             network.Nodes[*n_index].Print_chain,
+			"show posts":       network.Nodes[*n_index].Print_posts,
+			"verify":           network.Nodes[*n_index].Verify_chain,
+			"post":             network.Nodes[*n_index].Create_transaction,
 			"peer completions": network.Nodes[*n_index].Print_peer_completions,
-			"make node":         network.Add_new_node,
-			"list nodes":        network.List_nodes,
-			"next node":         network.Get_next,
-			"previous node":     network.Get_prev,
+			"make node":        network.Add_new_node,
+			"list nodes":       network.List_nodes,
+			"next node":        network.Get_next,
+			"previous node":    network.Get_prev,
 		}
 		fmt.Println("\nCurrent Node")
 		fmt.Println("-----------------------------------------------------")
-		fmt.Printf("Currently on node #%d\n", *n_index)
+		fmt.Printf("Currently on node #%d\n", network.Nodes[*n_index].Index)
 		fmt.Printf("Current Node Privkey:%v\n",
 			sha256.Sum256((network.Nodes[*n_index].Privkey.D.Bytes())))
 		fmt.Println("-----------------------------------------------------")

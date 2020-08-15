@@ -21,7 +21,6 @@ import (
 )
 
 type Node struct {
-	//MTree     *structures.MerkleTree
 	Chain     []structures.Block //probably should be the merkle tree
 	Privkey   rsa.PrivateKey
 	Pubkey    rsa.PublicKey
@@ -206,8 +205,8 @@ func (n *Node) Run() {
 
 func (n *Node) is_cur_block_full() bool {
 	num_transactions := 0
-	if (n.Cur_block.MTree) != nil {
-		num_transactions = len(n.Cur_block.MTree.Leafs)
+	if (n.Cur_block.TList) != nil {
+		num_transactions = len(n.Cur_block.TList)
 	}
 	if num_transactions >= n.Blocksize {
 		return true
@@ -239,18 +238,11 @@ func (n *Node) Create_transaction() {
 	privKey := n.Privkey
 	t.Signature = structures.SignTransaction_withoutFile(t, &privKey)
 	//t.Signature = structures.SignTransaction(t)
-	if n.Cur_block.MTree == nil {
-		var transactions []structures.Transaction
-		transactions = append(transactions, *t)
-		n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
-	} else {
-		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
-	}
+	n.Cur_block.TList = append(n.Cur_block.TList, t)
 	n.Chain[len(n.Chain)-1] = n.Cur_block
 	//done <- true
 
 	fmt.Printf("Added a transaction to block %v\n", len(n.Chain)+1)
-	//fmt.Printf("Amount of leafs in Merkle Tree %v\n", len(n.Cur_block.MTree.Leafs))
 }
 
 //Clean up goes here
@@ -271,14 +263,13 @@ func (n *Node) Print_chain() {
 	for _, block := range n.Chain {
 		fmt.Println(block.To_string())
 		//find a way to get transactions in order from the merkle tree
-		if block.MTree == nil {
+		if block.TList == nil {
 			fmt.Println("No Transactions In Block Yet")
 			continue
 		}
-		for _, l := range block.MTree.Leafs {
+		for _, l := range block.TList {
 			totalTrans += 1
-			trans := structures.Deserialize(l.HashedData)
-			fmt.Println(trans)
+			fmt.Println(l.To_string())
 		}
 		fmt.Println()
 	}
@@ -292,14 +283,13 @@ func (n *Node) Print_posts() {
 	totalTrans := 0
 	for _, block := range n.Chain {
 		//find a way to get transactions in order from the merkle tree
-		if block.MTree == nil {
+		if block.TList == nil {
 			fmt.Println("No Transactions In Block Yet")
 			continue
 		}
-		for _, l := range block.MTree.Leafs {
+		for _, l := range block.TList {
 			totalTrans += 1
-			trans := structures.Deserialize(l.HashedData)
-			fmt.Println(trans.To_string())
+			fmt.Println(l.To_string())
 		}
 		fmt.Println()
 	}
@@ -320,12 +310,6 @@ func (n *Node) Print_peer_completions() {
 func (n *Node) Create_transaction_from_input(input string) {
 	t := structures.CreateTransaction(input, 0)
 	t.Signature = structures.SignTransaction_withoutFile(t, &n.Privkey)
-	if n.Cur_block.MTree == nil {
-		var transactions []structures.Transaction
-		transactions = append(transactions, *t)
-		n.Cur_block.MTree = structures.CreateMerkleTree(1, transactions)
-	} else {
-		n.Cur_block.MTree = n.Cur_block.MTree.AddTransaction(t)
-	}
+	n.Cur_block.TList = append(n.Cur_block.TList, t)
 	n.Chain[len(n.Chain)-1] = n.Cur_block
 }

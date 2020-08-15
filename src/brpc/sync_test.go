@@ -16,35 +16,35 @@ func TestServe(t *testing.T) {
 
 func TestRPC(t *testing.T) {
 
-    n := Make_brpc_network()
+	n := Make_brpc_network()
 
-    n.Add_new_node()
-    n.Add_new_node()
+	n.Add_new_node()
+	n.Add_new_node()
 
-    n.List_nodes()
+	n.List_nodes()
 
-    node1 := n.Nodes[0]
-    node2 := n.Nodes[1]
+	node1 := n.Nodes[0]
+	node2 := n.Nodes[1]
 
-    fmt.Println("Giving 1 second for nodes to generate the first blocks")
-    time.Sleep(time.Second * 1)
+	fmt.Println("Giving 1 second for nodes to generate the first blocks")
+	time.Sleep(time.Second * 1)
 
-    time.Sleep(time.Second * 1)
+	time.Sleep(time.Second * 1)
 
-    valid, blockb := node1.Request_block(0, 1)
+	valid, blockb := node1.Request_block(0, 1)
 
-    fmt.Println("Recieved block:")
-    fmt.Printf(blockb.To_string())
+	fmt.Println("Recieved block:")
+	fmt.Printf(blockb.To_string())
 
-    if !valid{
-        log.Fatalf("Block was not valid, FAIL")
-    }
+	if !valid {
+		log.Fatalf("Block was not valid, FAIL")
+	}
 
-    //time.Time stores location data so we should use Unix time to more closely
-    //test a distributed system.
-    if blockb.Header.Timestamp.Unix() != node2.Chain[0].Header.Timestamp.Unix(){
-        log.Fatalf("Recieved block timestamp does not match the timestamp on node 2. FAIL")
-    }
+	//time.Time stores location data so we should use Unix time to more closely
+	//test a distributed system.
+	if blockb.Header.Timestamp.Unix() != node2.Chain[0].Header.Timestamp.Unix() {
+		log.Fatalf("Recieved block timestamp does not match the timestamp on node 2. FAIL")
+	}
 }
 
 func TestRPC2(t *testing.T) {
@@ -95,18 +95,30 @@ func TestRPC2(t *testing.T) {
 		log.Fatalf("Recieved block timestamp does not match the timestamp. FAIL")
 	}
 
-    n.List_nodes()
+	n.List_nodes()
 
-    //Add two transactions to complete block.
-    n.Nodes[0].Create_transaction_from_input("This is my transaction.")
-    n.Nodes[0].Create_transaction_from_input("This is my second transaction.")
+	//Add two transactions to complete block.
+	n.Nodes[0].Create_transaction_from_input("This is my transaction.")
+	n.Nodes[0].Create_transaction_from_input("This is my second transaction.")
 
-    //Wait to complete block.
-    //Output from Broadcast_complete_block should output
-    //which peer completed the block.
-    time.Sleep(time.Second * 3)
-
-    if len(n.Nodes[0].Chain) != 2 {
-        log.Fatalf("Block was not created")
-    }
+	//Wait to complete block.
+	//Output from Broadcast_complete_block should output
+	//which peer completed the block.
+	time.Sleep(time.Second * 10)
+	fmt.Println("len(n.Nodes[0].Chain)")
+	fmt.Println(len(n.Nodes[0].Chain))
+	if len(n.Nodes[0].Chain) != 2 {
+		log.Fatalf("Block was not created")
+	}
+	valid3, blockb3 := node2.Request_block(1, 0)
+	if !valid3 {
+		log.Fatalf("Block was not valid, FAIL")
+	}
+	if blockb3.Header.Timestamp.Unix() != node1.Chain[1].Header.Timestamp.Unix() {
+		log.Fatalf("Recieved block timestamp does not match the timestamp. FAIL")
+	}
+	for i, t := range blockb3.TList {
+		fmt.Println(i)
+		fmt.Println(t.To_string())
+	}
 }

@@ -1,10 +1,6 @@
 package structures
 
-import (
-	"fmt"
-	"testing"
-)
-
+/*
 func Test_merkle_tree(t *testing.T) {
 	fmt.Printf("Starting merkle tree test\n")
 	var transactions []Transaction
@@ -42,7 +38,7 @@ func Test_merkle_tree(t *testing.T) {
 		fmt.Println(err)
 	}
 	fmt.Printf("Trusted transaction: %t\n", result)
-	/*now add the transaction to the tree and check again*/
+
 	mTree1 = mTree1.AddTransaction(faultyTransation)
 	result2, err := mTree1.VerifyTransaction(faultyTransation)
 	if err != nil {
@@ -55,11 +51,6 @@ func Test_merkle_tree(t *testing.T) {
 	}
 	fmt.Printf("Trusted transaction: %t\n", result3)
 
-	/*
-		simulate one node and one transaction being hijacked and faulty,
-		the tree will be able to tell it is faulty when it combines the signatures
-		and checks with old combinations
-	*/
 	attackNumber := (len(mTree1.Leafs) / 2)
 	oldNode := mTree1.Leafs[attackNumber]
 	faultyTransaction := CreateTransaction("Faulty Transaction", 4)
@@ -73,3 +64,4 @@ func Test_merkle_tree(t *testing.T) {
 	}
 	fmt.Printf("Trusted transaction: %t\n", result4)
 }
+*/
