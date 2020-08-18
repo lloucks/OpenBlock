@@ -64,7 +64,10 @@ func GenerateHash(header structures.BlockHeader) [32]byte{
 
 
 func Verify_work(header structures.BlockHeader) bool{
-
+    //should not allow 0 Difficulty because then nodes can send empty blocks and they get veirified as valid
+	if header.Difficulty == 0 {
+		return false
+	}
     hash := GenerateHash(header)
 
     hashstr := to_bit_string(hash)
