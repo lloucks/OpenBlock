@@ -8,6 +8,8 @@ import (
 	"node"
 	"strconv"
 	"structures"
+	"pow"
+	"errors"
 )
 
 // RPC Server
@@ -135,6 +137,11 @@ func (s *Server) Send_block(arg *Block_request, reply *Block_request_reply) erro
 func (s *Server) Download_block(arg *Complete_block_request, reply *Complete_block_reply) error {
 	fmt.Println("Downloading block with index: ", arg.Block.Index)
 	fmt.Println("node#:", s.Node.Index)
+	work_valid := pow.Verify_work(arg.Block.Header)
+	if !work_valid { //ignore it
+		fmt.Println("Block is invalid! Cannot download block for peer:", arg.Peer)
+		return errors.New("Block is invalid! Cannot download block for peer")
+	}
 	s.Node.Chain = append(s.Node.Chain, arg.Block)
 	fmt.Println("Downloaded block to chain for node: ", s.Node.Index)
 	return nil
