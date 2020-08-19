@@ -102,16 +102,14 @@ func (n *Node) Broadcast_complete_block(block structures.Block) (bool, structure
 			c <- reply
 		}(i)
 	}
-	for i := 0; i < len(n.PeerPorts); i++ {
-		completed := <-c
-		if pow.Verify_work(completed.Block.Header) {
-			V := &Completed{}
-			V.Peer = completed.Peer
-			V.BlockIndex = block.Index
-			n.Peer_completions = append(n.Peer_completions, V)
-			go fmt.Println("Peer ", V.Peer, " completed the block.")
-			return true, completed.Block
-		}
+	completed := <-c
+	if pow.Verify_work(completed.Block.Header) {
+		V := &Completed{}
+		V.Peer = completed.Peer
+		V.BlockIndex = block.Index
+		n.Peer_completions = append(n.Peer_completions, V)
+		go fmt.Println("Peer ", V.Peer, " completed the block.")
+		return true, completed.Block
 	}
 	return false, block
 }
