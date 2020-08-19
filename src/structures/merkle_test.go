@@ -50,6 +50,9 @@ func Test_merkle_tree(t *testing.T) {
 		fmt.Println(err)
 	}
 	fmt.Printf("Trusted transaction: %t\n", result3)
+	b := mTree1.Serialize()
+	fmt.Println(b)
+
 
 	attackNumber := (len(mTree1.Leafs) / 2)
 	oldNode := mTree1.Leafs[attackNumber]
@@ -63,5 +66,6 @@ func Test_merkle_tree(t *testing.T) {
 		fmt.Println(err)
 	}
 	fmt.Printf("Trusted transaction: %t\n", result4)
+
 }
 */

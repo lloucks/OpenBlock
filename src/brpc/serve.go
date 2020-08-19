@@ -1,15 +1,15 @@
 package brpc
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"net/rpc"
 	"node"
+	"pow"
 	"strconv"
 	"structures"
-	"pow"
-	"errors"
 )
 
 // RPC Server
@@ -144,5 +144,14 @@ func (s *Server) Download_block(arg *Complete_block_request, reply *Complete_blo
 	}
 	s.Node.Chain = append(s.Node.Chain, arg.Block)
 	fmt.Println("Downloaded block to chain for node: ", s.Node.Index)
+	return nil
+}
+
+func (s *Server) Run_Complete_block(arg *Complete_block_request, reply *Complete_block_reply) error {
+	fmt.Println("Racing to complete block with index: ", arg.Block.Index)
+	fmt.Println("node#:", s.Node.Index)
+	reply.Peer = arg.Peer
+	block := pow.Complete_block(arg.Block)
+	reply.Block = block
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"log"
+	"encoding/gob"
 )
 
 type MerkleTree struct {
@@ -43,6 +44,27 @@ func CreateMerkleTree(ID int, transactions []Transaction) *MerkleTree {
 	tree.Leafs = leafs
 	return tree
 }
+
+func (t MerkleTree) Serialize() []byte {
+	buf := &bytes.Buffer{}
+	if err := gob.NewEncoder(buf).Encode(t); err != nil {
+		log.Panic(err)
+		return nil
+	}
+	return buf.Bytes()
+}
+
+func DeserializeTree(serialized []byte) *MerkleTree {
+	var result MerkleTree
+	d := gob.NewDecoder(bytes.NewReader(serialized))
+	err := d.Decode(&result)
+	if err != nil {
+		log.Fatal("Error Deserializing Transaction")
+		return nil
+	}
+	return &result
+}
+
 
 /*
 	Adds a new transaction to the merkle tree

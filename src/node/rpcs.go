@@ -115,23 +115,31 @@ func (n *Node) Race_complete_block(block structures.Block) (bool, structures.Blo
 	c := make(chan Complete_block_reply)
 	for i := 0; i < len(n.PeerPorts); i++ {
 		go func(i int) {
+			/*
+				reply := Complete_block_reply{}
+				reply.Peer = i
+				block := pow.Complete_block(block)
+				reply.Block = block
+			*/
+			request := Complete_block_request{}
 			reply := Complete_block_reply{}
-			reply.Peer = i
-			block := pow.Complete_block(block)
-			reply.Block = block
+			request.Block = block
+			request.Peer = i
+			ok := n.Call(n.PeerPorts[i], "Server.Run_Complete_block", &request, &reply)
+			if !ok {
+				fmt.Println("Failed to send complete block request to peer#", i)
+			}
 			c <- reply
 		}(i)
 	}
-	for i := 0; i < len(n.PeerPorts); i++ {
-		completed := <-c
-		if pow.Verify_work(completed.Block.Header) {
-			V := &Completed{}
-			V.Peer = completed.Peer
-			V.BlockIndex = block.Index
-			n.Peer_completions = append(n.Peer_completions, V)
-			go fmt.Println("Peer ", V.Peer, " completed the block.")
-			return true, completed.Block
-		}
+	completed := <-c
+	if pow.Verify_work(completed.Block.Header) {
+		V := &Completed{}
+		V.Peer = completed.Peer
+		V.BlockIndex = block.Index
+		n.Peer_completions = append(n.Peer_completions, V)
+		go fmt.Println("Peer ", V.Peer, " completed the block.")
+		return true, completed.Block
 	}
 	return false, block
 }
